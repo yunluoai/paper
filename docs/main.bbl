@@ -1,0 +1,362 @@
+\begin{thebibliography}{52}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{#1}
+\expandafter\ifx\csname urlstyle\endcsname\relax\else
+  \urlstyle{same}\fi
+\expandafter\ifx\csname href\endcsname\relax
+  \DeclareUrlCommand\doi{\urlstyle{rm}}
+  \def\eprint#1#2{#2}
+\else
+  \def\doi#1{\href{https://doi.org/#1}{\nolinkurl{#1}}}
+  \let\eprint\href
+\fi
+
+\bibitem[Proakis(2007)]{proakis2007digital}
+PROAKIS J~G.
+\newblock Digital signal processing: principles, algorithms, and applications,
+  4/e\allowbreak[M].
+\newblock Pearson Education India, 2007.
+
+\bibitem[Wang et~al.(2021)Wang, Li, Liu, Liu, Lei, Zhang, Zhang, and
+  Guo]{wang2021advancing}
+WANG Y, LI C, LIU C, et~al.
+\newblock Advancing dsp into hpc, ai, and beyond: challenges, mechanisms, and
+  future directions\allowbreak[J].
+\newblock CCF Transactions on High Performance Computing, 2021, 3\allowbreak
+  (1): 114-125.
+
+\bibitem[SONG et~al.(2023)SONG, XU, and CHEN]{song2023overview}
+SONG W, XU D, CHEN L.
+\newblock Overview of dsp architecture development\allowbreak[J].
+\newblock Microelectronics \& Computer, 2023, 40\allowbreak (4): 1-7.
+
+\bibitem[Flynn(2009)]{flynn2009some}
+FLYNN M~J.
+\newblock Some computer organizations and their effectiveness\allowbreak[J].
+\newblock IEEE transactions on computers, 2009, 100\allowbreak (9): 948-960.
+
+\bibitem[Fisher(1998)]{fisher1998very}
+FISHER J~A.
+\newblock Very long instruction work architectures and the
+  eli-512\allowbreak[C]//\allowbreak
+25 years of the International symposia on Computer architecture (selected
+  papers).
+\newblock 1998: 263-273.
+
+\bibitem[Rau et~al.(2011)Rau and Fisher]{rau2011instruction}
+RAU B~R, FISHER J~A.
+\newblock Instruction-level parallel processing: History, overview, and
+  perspective\allowbreak[M]//\allowbreak
+Instruction-Level Parallelism: A Special Issue of The Journal of
+  Supercomputing.
+\newblock Springer, 2011: 9-50.
+
+\bibitem[Giordani et~al.(2020)Giordani, Polese, Mezzavilla, Rangan, and
+  Zorzi]{giordani2020toward}
+GIORDANI M, POLESE M, MEZZAVILLA M, et~al.
+\newblock Toward 6g networks: Use cases and technologies\allowbreak[J].
+\newblock IEEE communications magazine, 2020, 58\allowbreak (3): 55-61.
+
+\bibitem[Satyanarayanan et~al.(2009)Satyanarayanan, Bahl, Caceres, and
+  Davies]{satyanarayanan2009case}
+SATYANARAYANAN M, BAHL P, CACERES R, et~al.
+\newblock The case for vm-based cloudlets in mobile computing\allowbreak[J].
+\newblock IEEE pervasive Computing, 2009, 8\allowbreak (4): 14-23.
+
+\bibitem[Muchnick(1997)]{muchnick1997advanced}
+MUCHNICK S.
+\newblock Advanced compiler design implementation\allowbreak[M].
+\newblock Morgan kaufmann, 1997.
+
+\bibitem[Backus et~al.(1957)Backus, Beeber, Best, Goldberg, Haibt, Herrick,
+  Nelson, Sayre, Sheridan, Stern, et~al.]{backus1957fortran}
+BACKUS J~W, BEEBER R~J, BEST S, et~al.
+\newblock The fortran automatic coding system\allowbreak[C]//\allowbreak
+Papers presented at the February 26-28, 1957, western joint computer
+  conference: Techniques for reliability.
+\newblock 1957: 188-198.
+
+\bibitem[Conway(1963)]{conway1963design}
+CONWAY M~E.
+\newblock Design of a separable transition-diagram compiler\allowbreak[J].
+\newblock Communications of the ACM, 1963, 6\allowbreak (7): 396-408.
+
+\bibitem[Aho et~al.(1972)Aho and Ullman]{aho1972theory}
+AHO A~V, ULLMAN J~D.
+\newblock The theory of parsing, translation, and compiling:
+  Vol.~1\allowbreak[M].
+\newblock Prentice-Hall Englewood Cliffs, NJ, 1972.
+
+\bibitem[Johnson et~al.(1978)Johnson and Ritchie]{johnson1978unix}
+JOHNSON S~C, RITCHIE D~M.
+\newblock Unix time-sharing system: Portability of c programs and the unix
+  system\allowbreak[J].
+\newblock The Bell System Technical Journal, 1978, 57\allowbreak (6):
+  2021-2048.
+
+\bibitem[Stallman et~al.(1988)Stallman, McGrath, and Smith]{stallman1988gnu}
+STALLMAN R~M, MCGRATH R, SMITH P.
+\newblock Gnu make\allowbreak[J].
+\newblock Free Software Foundation, Boston, 1988.
+
+\bibitem[Lattner et~al.(2004)Lattner and Adve]{lattner2004llvm}
+LATTNER C, ADVE V.
+\newblock Llvm: A compilation framework for lifelong program analysis \&
+  transformation\allowbreak[C]//\allowbreak
+International symposium on code generation and optimization, 2004. CGO 2004.
+\newblock IEEE, 2004: 75-86.
+
+\bibitem[刘颖\ 等(2014)刘颖, 吕方, 王蕾, 陈莉, 崔慧敏, and
+  冯晓兵]{刘颖2014异构并行编程模型研究与进展}
+刘颖, 吕方, 王蕾, 等.
+\newblock 异构并行编程模型研究与进展\allowbreak[J].
+\newblock 软件学报, 2014, 25\allowbreak (7): 17.
+
+\bibitem[Guide(2013)]{guide2013cuda}
+GUIDE D.
+\newblock Cuda c programming guide\allowbreak[J].
+\newblock NVIDIA, July, 2013, 29\allowbreak (31): 6.
+
+\bibitem[Nickolls(2008)]{nickolls2008scalable}
+NICKOLLS J.
+\newblock Scalable parallel programming with cuda
+  introduction\allowbreak[C]//\allowbreak
+2008 IEEE Hot Chips 20 Symposium (HCS).
+\newblock IEEE Computer Society, 2008: 1-9.
+
+\bibitem[Bezbaruah et~al.(2024)Bezbaruah, Dhakulkar, Pandey, Kumar, Sudarsan,
+  et~al.]{bezbaruah2024comparative}
+BEZBARUAH M, DHAKULKAR S, PANDEY P, et~al.
+\newblock Comparative analysis of gcc and llvm for performance optimization on
+  aarch64\allowbreak[C]//\allowbreak
+2024 IEEE High Performance Extreme Computing Conference (HPEC).
+\newblock IEEE, 2024: 1-6.
+
+\bibitem[Hjort~Blindell(2016)]{hjort2016tree}
+HJORT~BLINDELL G.
+\newblock Tree covering\allowbreak[M]//\allowbreak
+Instruction Selection: Principles, Methods, and Applications.
+\newblock Springer, 2016: 31-76.
+
+\bibitem[Smotherman et~al.(1991)Smotherman, Krishnamurthy, Aravind, and
+  Hunnicutt]{smotherman1991efficient}
+SMOTHERMAN M, KRISHNAMURTHY S, ARAVIND P, et~al.
+\newblock Efficient dag construction and heuristic calculation for instruction
+  scheduling\allowbreak[C]//\allowbreak
+Proceedings of the 24th annual international symposium on Microarchitecture.
+\newblock 1991: 93-102.
+
+\bibitem[Griffith(2002)]{griffith2002gcc}
+GRIFFITH A.
+\newblock Gcc: the complete reference\allowbreak[M].
+\newblock McGraw-Hill, Inc., 2002.
+
+\bibitem[Johnson(1978)]{johnson1978portable}
+JOHNSON S~C.
+\newblock A portable compiler: Theory and practice\allowbreak[C]//\allowbreak
+Proceedings of the 5th ACM SIGACT-SIGPLAN symposium on Principles of
+  programming languages.
+\newblock 1978: 97-104.
+
+\bibitem[Bilardi et~al.(1999)Bilardi and Pingali]{bilardi1999static}
+BILARDI G, PINGALI K.
+\newblock The static single assignment form and its computation\allowbreak[J].
+\newblock Cornell University Technical Report, 1999.
+
+\bibitem[Leidel et~al.(2021)Leidel, Kabrick, and Donofrio]{leidel2021toward}
+LEIDEL J, KABRICK R, DONOFRIO D.
+\newblock Toward an automated hardware pipelining llvm pass
+  infrastructure\allowbreak[C]//\allowbreak
+2021 IEEE/ACM 7th Workshop on the LLVM Compiler Infrastructure in HPC
+  (LLVM-HPC).
+\newblock IEEE, 2021: 39-49.
+
+\bibitem[Huber et~al.(2021)Huber, Wei, Georgakoudis, Doerfert, and
+  Hernandez]{huber2021case}
+HUBER J, WEI W, GEORGAKOUDIS G, et~al.
+\newblock A case study of llvm-based analysis for optimizing simd code
+  generation\allowbreak[C]//\allowbreak
+International Workshop on OpenMP.
+\newblock Springer, 2021: 142-155.
+
+\bibitem[Fang et~al.(2025)Fang and Zheng]{fang2025retrofitting}
+FANG S, ZHENG W.
+\newblock Retrofitting control flow graphs in llvm ir for auto
+  vectorization\allowbreak[A].
+\newblock 2025.
+
+\bibitem[Farvardin et~al.(2020)Farvardin and Reppy]{farvardin2020new}
+FARVARDIN K, REPPY J.
+\newblock A new backend for standard ml of new
+  jersey\allowbreak[C]//\allowbreak
+Proceedings of the 32nd Symposium on Implementation and Application of
+  Functional Languages.
+\newblock 2020: 55-66.
+
+\bibitem[Appel et~al.(1991)Appel and MacQueen]{appel1991standard}
+APPEL A~W, MACQUEEN D~B.
+\newblock Standard ml of new jersey\allowbreak[C]//\allowbreak
+International Symposium on Programming Language Implementation and Logic
+  Programming.
+\newblock Springer, 1991: 1-13.
+
+\bibitem[Mpeis et~al.(2021)Mpeis, Petoumenos, Hazelwood, and
+  Leather]{mpeis2021developer}
+MPEIS P, PETOUMENOS P, HAZELWOOD K, et~al.
+\newblock Developer and user-transparent compiler optimization for interactive
+  applications\allowbreak[C]//\allowbreak
+Proceedings of the 42nd ACM SIGPLAN International Conference on Programming
+  Language Design and Implementation.
+\newblock 2021: 268-281.
+
+\bibitem[Lammich(2022)]{lammich2022refinement}
+LAMMICH P.
+\newblock Refinement of parallel algorithms down to
+  llvm\allowbreak[C]//\allowbreak
+13th International Conference on Interactive Theorem Proving (ITP 2022).
+\newblock Dagstuhl, 2022: 24-1.
+
+\bibitem[Balasubramanian et~al.(2024)Balasubramanian, Di~Salvo, Rocchia,
+  Decherchi, and Crepaldi]{balasubramanian2024designing}
+BALASUBRAMANIAN K~K, DI~SALVO M, ROCCHIA W, et~al.
+\newblock Designing risc-v instruction set extensions for artificial neural
+  networks: An llvm compiler-driven perspective\allowbreak[J].
+\newblock IEEE Access, 2024, 12: 55925-55944.
+
+\bibitem[de~la Torre et~al.(2025)de~la Torre, Jare{\~n}o, Arag{\'o}n-Jurado,
+  Varrette, and Dorronsoro]{de2025source}
+DE~LA TORRE J~C, JARE{\~N}O J, ARAG{\'O}N-JURADO J~M, et~al.
+\newblock Source code obfuscation with genetic algorithms using llvm code
+  optimizations\allowbreak[J].
+\newblock Logic Journal of the IGPL, 2025, 33\allowbreak (5): jzae069.
+
+\bibitem[Fan et~al.(2024)Fan and Regehr]{fan2024high}
+FAN Y, REGEHR J.
+\newblock High-throughput, formal-methods-assisted fuzzing for
+  llvm\allowbreak[C]//\allowbreak
+2024 IEEE/ACM International Symposium on Code Generation and Optimization
+  (CGO).
+\newblock IEEE, 2024: 349-358.
+
+\bibitem[刘玉\ 等(2020)刘玉, 刘谷, and 耿锐]{刘玉2020基于}
+刘玉, 刘谷, 耿锐.
+\newblock 基于 LLVM 实现的国产 DSP 优化编译器\allowbreak[J].
+\newblock 中国集成电路, 2020, 29\allowbreak (7): 24-28.
+
+\bibitem[沈莉\ 等(2023)沈莉, 周文浩, 王飞, 肖谦, 武文浩,
+  张鲁飞, 安虹, and 漆锋滨]{沈莉2023swllvm}
+沈莉, 周文浩, 王飞, 等.
+\newblock swLLVM: Optimized Compiler for New Generation Sunway
+  Supercomputer\allowbreak[J].
+\newblock Journal of Software, 2023, 35\allowbreak (5): 2359-2378.
+
+\bibitem[吴忧(2024)]{吴忧2024}
+吴忧.
+\newblock
+  基于LLVM编译器的自动调优算法研究与实现\allowbreak[D].
+\newblock 西安电子科技大学, 2024.
+
+\bibitem[Ebner et~al.(2021)Ebner, Krall, and Scholz]{Ebner2021}
+EBNER D, KRALL A, SCHOLZ B.
+\newblock Instruction code selection\allowbreak[C]//\allowbreak
+Lecture Notes in Computer Science: Vol. 12608\quad Compiler Construction.
+\newblock Springer, 2021: 17-32.
+
+\bibitem[Ebner et~al.(2008)Ebner, Brandner, Scholz, Krall, Wiedermann, and
+  Kadlec]{ebner2008generalized}
+EBNER D, BRANDNER F, SCHOLZ B, et~al.
+\newblock Generalized instruction selection using
+  ssa-graphs\allowbreak[C]//\allowbreak
+Proceedings of the 2008 ACM SIGPLAN-SIGBED conference on Languages, compilers,
+  and tools for embedded systems.
+\newblock 2008: 31-40.
+
+\bibitem[Colombet(2015)]{Colombet2015GlobalISel}
+COLOMBET Q.
+\newblock Global instruction selection\allowbreak[C]//\allowbreak
+LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2015.
+
+\bibitem[Rong et~al.(2024)Rong, Yu, Weng, Neuendorffer, and
+  Chen]{rong2024irfuzzer}
+RONG Y, YU Z, WENG Z, et~al.
+\newblock Irfuzzer: Specialized fuzzing for llvm backend code
+  generation\allowbreak[A].
+\newblock 2024.
+
+\bibitem[Colombet et~al.(2016)Colombet, Larin,
+  et~al.]{Colombet2016GlobalISelDesign}
+COLOMBET Q, LARIN S, et~al.
+\newblock Globalisel: Design, implementation, and future
+  directions\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2016.
+
+\bibitem[Bogner(2017)]{Bogner2017ISelFuzzing}
+BOGNER J.
+\newblock Fuzzing and testing instruction selection in
+  llvm\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2017.
+
+\bibitem[Sanders(2019)]{Sanders2019GlobalISelCombiner}
+SANDERS D.
+\newblock The globalisel combiner\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2019.
+
+\bibitem[Zhufeng et~al.(2021)Zhufeng and Jiandong]{zhufeng2021optimization}
+ZHUFENG H, JIANDONG S.
+\newblock Optimization based on llvm global instruction
+  selection\allowbreak[C]//\allowbreak
+Journal of Physics: Conference Series: Vol. 1856.
+\newblock IOP Publishing, 2021: 012004.
+
+\bibitem[Nacke et~al.(2022)]{Nacke2022PowerPCGlobalISel}
+NACKE K, et~al.
+\newblock Bringing globalisel to powerpc\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2022.
+
+\bibitem[Houtryve(2024)]{Houtryve2024MIRPattern}
+HOUTRYVE P.
+\newblock Extending the globalisel combiner with mir pattern
+  support\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2024.
+
+\bibitem[Stadler(2024)]{Stadler2024DirectGMIR}
+STADLER T.
+\newblock Directly generating gmir to speed up llvm
+  compilation\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2024.
+
+\bibitem[Xie(2024)]{Xie2024ScalableVectorGlobalISel}
+XIE J.
+\newblock Supporting scalable vectors in globalisel: A risc-v case
+  study\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2024.
+
+\bibitem[Amilkanthwar(2024)]{Amilkanthwar2024AArch64GlobalISel}
+AMILKANTHWAR M.
+\newblock Eliminating globalisel fallback on aarch64
+  simd\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2024.
+
+\bibitem[Hickey(2025)]{Hickey2025GlobalISelCI}
+HICKEY N.
+\newblock Tracking and eliminating globalisel fallbacks with continuous
+  integration\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2025.
+
+\bibitem[彭成寒\ 等(2024)彭成寒, 李灵, 戴贤泽,
+  et~al.]{PengLLVM2024}
+彭成寒, 李灵, 戴贤泽, 等.
+\newblock 深入理解LLVM代码生成\allowbreak[M].
+\newblock 北京: 机械工业出版社, 2024.
+
+\end{thebibliography}

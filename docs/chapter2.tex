@@ -1,0 +1,750 @@
+\chapter{全局指令选择实现}
+
+
+%*********************************************************************
+% 2.1 全局指令选择框架概述
+%*********************************************************************
+\section{全局指令选择框架概述}
+编译器后端的指令选择是将LLVM IR（Intermediate Representation，中间表示）转换为目标架构MI（Machine Instruction，机器指令）的关键环节，其核心目标是在保证程序语义等价的前提下，生成符合目标架构约束且性能尽可能优的指令序列。该阶段直接影响生成代码的执行效率、资源利用率以及编译器对复杂硬件架构的适配能力，是连接前端语义表示与后端机器执行的重要桥梁。
+
+\par
+
+随着处理器架构的不断演进以及LLVM编译器基础设施的持续发展，指令选择的实现方式也在不断演化。为适应不同应用场景和性能需求，LLVM先后发展并引入了快速指令选择、基于有向无环图的指令选择以及全局指令选择等三种主流技术路线。这些方案在设计理念、适用场景和生成代码质量等方面各有侧重，共同构成了LLVM指令选择技术体系的发展脉络。
+
+
+% 2.1.1 传统指令选择方案及其局限性
+\subsection{传统指令选择方案及其局限性}
+在LLVM的早期发展阶段，指令选择的主要目标是保证LLVM IR能够正确、稳定地映射为目标架构支持的机器指令，并在开启优化选项时生成质量较高的代码。为此，LLVM采用了基于DAG的指令选择方案。该方案是LLVM长期以来的主流指令选择方案，也是优化模式下的默认选择，其核心定位是代码质量优先，支持复杂架构指令集，能够处理X86、ARM以及RISCV等各类架构的复杂指令选择需求。
+
+\par
+
+SelectionDAG指令选择方案通过将基本块内的LLVM IR转换为SelectionDAG结构，在此基础上完成指令合法化（Legalize）、节点组合（Combine）以及指令匹配与替换等阶段性处理，从而实现从中间表示到目标机器指令的映射过程。其整体处理流程如图\ref{fig:dag_flowchart}所示。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/dag_flowchart.png}
+	\caption{SelectionDAGISel流程图}
+	\label{fig:dag_flowchart}
+\end{figure}
+
+其核心设计理念是将LLVM IR转换为DAG来表示指令间的数据流依赖关系，再通过模式匹配+树覆盖的算法将DAG节点映射为目标架构的机器指令。具体流程可分为三个阶段：首先，将LLVM IR指令序列转换为SelectionDAG，其中每个节点代表一个操作，边代表数据依赖，这种结构能清晰体现指令间的数据流关系，避免了线性扫描的局限性；其次，对SelectionDAG进行标准化和优化，简化后续的匹配流程；最后，采用基于TableGen自动生成的模式匹配器，对优化后的SelectionDAG进行拓扑排序后，自底向上遍历节点，匹配目标架构在td文件中定义的DAG模式，将匹配成功的节点替换为对应的机器指令，最终生成目标架构的机器代码。展示了一个简单自增运算函数在指令选择阶段生成、调度之前的部分SelectionDAG图。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.8\textwidth]{pics/dag_example.pdf}
+	\caption{自增运算函数在指令选择阶段生成的部分SelectionDAG示例}
+	\label{fig:dag_example}
+\end{figure}
+
+基于DAG的指令选择机制通过构建DAG图实现了对全局数据流的深度分析，从而能够进行复杂的指令优化与组合，显著提升了生成代码的质量。除此之外，开发者仅需在描述文件中定义指令模式即可自动生成匹配代码，大幅降低了新架构适配的开发成本。同时它具备强大的扩展性，能够灵活支持各类复杂指令集特性，为多样化的硬件架构提供了坚实的编译器后端支持。但该指令选择方案也存在显著的设计复杂度：一方面，SelectionDAG的构建、优化和拓扑排序涉及大量复杂的逻辑，增加了编译器的维护成本；另一方面，DAG作为专用中间表示，与LLVM IR和机器指令的衔接需要额外的转换层，限制了架构适配的灵活性。
+
+\par
+
+随着LLVM在工程实践中被广泛用于大规模项目与调试场景，编译速度在低优化等级下成为关键诉求。为满足调试构建对快速编译的需求，LLVM在SelectionDAG体系之外引入了FastISel机制作为补充路径。FastISel是LLVM为平衡编译速度与代码质量设计的轻量级指令选择方案，其核心定位是编译速度优先，兼顾基础指令选择需求，主要用于O0优化等级下的代码生成。
+
+\par
+
+从设计原理来看，快速指令选择采用线性扫描+模式匹配的策略，以单个指令为处理单位，不构建复杂的中间表示结构。其核心流程为：遍历LLVM IR指令序列，对每条指令直接匹配目标架构的简单指令模式，匹配成功则直接生成机器指令，匹配失败则回退到基于DAG的指令选择。该流程如图\ref{fig:fast_flowchart}所示。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{pics/fast_flowchart.png}
+	\caption{FastISel流程图}
+	\label{fig:fast_flowchart}
+\end{figure}
+
+为了最大化编译速度，快速指令选择的匹配规则采用手工编写的C++代码实现，避免了TableGen工具链的解析与代码生成开销，同时省略了指令间的依赖分析和优化逻辑。这种设计使得快速指令选择的编译效率极高，能显著缩短调试模式下的编译时间，但也存在明显局限性：一方面，仅支持简单的指令模式匹配，无法处理如向量运算、指令融合这样复杂的指令组合，生成的代码质量较低；另一方面，由于缺乏全局视角，无法优化跨指令的数据流和控制流，在性能敏感的场景下难以满足需求。因此，快速指令选择通常仅作为调试模式的默认选择，用于调试和快速编译的场景，而在性能敏感的优化模式下仍需依赖更强的指令选择机制。
+
+\par
+
+随着编译器应用场景的持续扩展，传统指令选择方案在编译效率、全局优化能力以及架构适配灵活性方面逐渐难以适配新需求：一方面，专用中间表示及其配套优化机制增加了编译流程复杂度及维护成本，而其局部化的指令选择视角与寄存器约束处理逻辑，在跨基本块优化、复杂寄存器组绑定等复杂场景中存在明显局限，难以充分释放硬件性能潜力。这些问题共同推动了新一代指令选择框架的提出与发展。
+
+
+
+% 2.1.2 全局指令选择概念及总体设计
+\subsection{全局指令选择概念及总体设计}
+全局指令选择是LLVM为解决基于DAG的指令选择的局限性而设计的新一代指令选择框架，其核心目标是兼顾编译速度、代码质量和架构适配灵活性，同时统一LLVM IR到机器指令的转换流程。
+
+\par
+
+从设计理念来看，全局指令选择摒弃了基于DAG的专用中间表示，转而使用GMIR（Generic Machine Intermediate Representation，通用机器中间表示）作为核心载体。GMIR是对LLVM IR的轻量级扩展，保留了LLVM IR的语义特征，同时引入了目标架构的基础信息，使得指令选择过程无需在多种中间表示间频繁转换，简化了整体流程。全局指令选择的核心优势在于全局性和灵活性：前者体现在其以函数为粒度，结合控制流和数据流的全局视角进行指令选择，能优化跨基本块的指令序列；后者体现在其支持手动和自动两种模式匹配方式，且能重用基于DAG的指令选择的部分指令集描述信息，同时通过自定义代码补充TableGen无法描述的复杂指令，降低了架构适配的成本。
+
+\par
+
+全局指令选择的执行流程分为两个核心阶段：第一阶段为GMIR预处理，包括将LLVM IR转换为原始GMIR、指令合法化、寄存器类型选择，最终生成附着目标架构信息的合法GMIR；第二阶段为机器指令选择，以函数为粒度，采用基于树覆盖的指令选择算法，通过自动匹配模块和手动匹配模块，将GMIR指令树映射为MIR（Machine Intermediate Representation，目标架构的机器中间表示），同时将通用虚拟寄存器限制到具体的寄存器类中，并传递COPY指令至后续的寄存器分配阶段。
+
+\par
+
+全局指令选择将两个阶段涉及的每个功能都拆分成独立的Pass，这样既能使整体的架构更加清晰，也能够方便利用LLVM Pass的相关基础设施进行代码维护和问题分析定位。LLVM实现中将全局指令选择所必需的基本功能划分为4个Pass，其中第一阶段包含3个Pass，而第二阶段为1个Pass。还有窥孔类的优化也会以独立Pass进行实现，并可以放置在4个基础Pass之间的任意位置，不同的架构可以根据需要配置一到多个这种优化Pass。该流程如图\ref{fig:global_flowchart}所示。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/global_flowchart.png}
+	\caption{GlobalISel流程图}
+	\label{fig:global_flowchart}
+\end{figure}
+
+与前两种指令选择方案相比，全局指令选择实现了在编译效率、代码质量和架构适配性之间的多维度平衡：在编译速度上，其避免了SelectionDAG的复杂处理，编译效率接近快速指令选择；在代码质量上，其全局视角和复杂模式匹配能力能生成与基于DAG的指令选择相当的代码；在架构适配性上，其通用的GMIR表示和灵活的模式匹配机制，能更便捷地适配新的架构，尤其是对于具有特殊寄存器组和向量指令的架构，全局指令选择的寄存器组绑定机制能显著减少跨寄存器组的数据复制开销。此外，全局指令选择的模块化设计，使得其易于扩展和维护，成为LLVM未来指令选择技术的发展方向。
+
+
+%*********************************************************************
+% 2.2 GMIR生成
+%*********************************************************************
+\section{GMIR生成}
+GMIR的生成是GlobalISel第一阶段的第一个Pass，也称为IRTranslator。IRTranslator阶段的任务是完成LLVM IR到GMIR的语义下沉与架构适配，核心是要完成寄存器处理、栈管理以及调用约定处理等操作。IRTranslator的实现以DSP目标平台的ABI（Application Binary Interface，应用二进制接口）约定、指令集特性及数据类型支持为核心依据，通过模块化的调用处理机制，确保函数调用、参数传递、返回值处理的正确性与高效性。
+
+% 2.2.1 通用机器表示
+\subsection{通用机器表示}
+GMIR是GlobalISel框架的核心中间层，在LLVM IR与目标架构强相关的MIR之间起到承上启下的关键作用。其核心设计目标是在保留通用机器语义的同时，延迟引入具体架构细节，从而为跨架构的指令选择、合法化以及后续优化提供统一而稳定的基础。通过这一设计，GlobalISel能够在更大作用域内进行分析与决策，避免过早绑定目标架构而压缩优化空间。GMIR由四个要素组成：
+
+\begin{enumerate}
+	\item
+	通用虚拟寄存器（Generic Virtual Register）：不绑定具体物理寄存器，由MachineRegisterInfo统一管理生命周期，是GMIR中数据传递的核心载体，如函数参数、运算结果均存储于虚拟寄存器。
+	
+	\item
+	通用指令集（Generic Instructions）：覆盖算术运算、逻辑运算、内存访问、分支跳转、函数调用与返回等基础操作，指令格式标准化，避免架构专属指令的碎片化。
+	
+	\item 
+	LLT（Low-Level Type，低级别类型）：基于位宽和类型类别定义（如标量、指针、向量），摒弃了LLVM IR的高级类型（如结构体、类），更贴近硬件数据处理逻辑。
+	
+	\item 
+	架构约束元数据：通过MachineMemOperand（内存访问属性）、RegMask（寄存器使用掩码）、CCValAssign（调用约定分配信息）等，记录目标架构的硬件约束，为后续合法化与指令选择提供依据。
+	
+\end{enumerate}
+
+在GlobalISel的整体流程中，GMIR贯穿指令选择前后的多个关键阶段。首先，IRTranslator以函数为单位遍历LLVM IR，将其直接映射为GMIR的通用指令和虚拟寄存器表示，例如将LLVM IR中的call指令转换为GMIR的G\_CALL指令并生成相应的参数传递逻辑。在这一阶段，编译器可结合目标架构进行必要的特化处理，如针对DSP架构对64位浮点运算进行拆分或执行调用约定校验。随后进入合法化阶段，对GMIR中目标架构不直接支持的指令或类型进行修正，确保其完全落入硬件能力范围。在此基础上，寄存器银行选择阶段将通用虚拟寄存器映射到目标架构定义的寄存器银行中，为后续物理寄存器分配奠定基础。最后，指令选择阶段将GMIR的通用指令替换为目标架构的专属机器指令，最终生成与目标硬件紧密绑定的MIR表示。为进一步明确GMIR在LLVM编译流程中的抽象层级及其过渡性定位，表\ref{tab:ir_gmir_mir}对LLVM IR、GMIR与MIR在抽象层级、核心元素及架构相关性等方面进行了对比。
+
+\begin{table}[htbp]
+	\centering
+	\caption{LLVM 不同中间表示层次对比}
+	\label{tab:ir_gmir_mir}
+	
+	\renewcommand{\arraystretch}{1.2}
+	{\footnotesize
+		\begin{tabularx}{\linewidth}{
+				>{\raggedright\arraybackslash}m{1.2cm}
+				>{\centering\arraybackslash}X
+				>{\centering\arraybackslash}X
+				>{\centering\arraybackslash}X
+				>{\centering\arraybackslash}X
+			}
+			\toprule
+			类型 & 抽象层级 & 核心元素 & 架构相关性 & 核心作用 \\
+			\midrule
+			IR &
+			高级语言无关抽象（函数、模块级） &
+			函数、基本块、Value、LLVM IR 指令 &
+			完全无关 &
+			跨平台程序分析与中端优化 \\
+			
+			GMIR &
+			通用机器语义抽象（指令、寄存器级） &
+			通用虚拟寄存器、通用指令、LLT 类型 &
+			部分相关 &
+			衔接 LLVM IR 与架构相关 MIR，统一指令选择流程 \\
+			
+			MIR &
+			目标架构专属抽象（硬件指令、物理寄存器级） &
+			物理寄存器、目标架构指令、硬件约束 &
+			完全相关（绑定具体硬件） &
+			目标架构指令调度与寄存器分配 \\
+			\bottomrule
+		\end{tabularx}
+	}
+\end{table}
+
+相较于传统LLVM IR到SelectionDAG的映射流程，GlobalISel中LLVM IR到GMIR的转换路径在流程简化、语义完整性以及优化潜力等方面具有明显优势。GlobalISel通过直接生成GMIR，避免了SelectionDAG流程中LLVM IR、SelectionDAG和MachineDAG之间的多次转换，显著降低了编译流程的复杂度和开销。同时，GMIR以函数为整体进行构建，能够完整保留LLVM IR中跨基本块的控制流和数据依赖信息，为全局优化提供基础。得益于通用虚拟寄存器可跨基本块存在以及LLT对异构类型系统的良好适配能力，GMIR进一步为跨块指令合并、全局寄存器分配等优化创造了条件，从而展现出更大的优化潜力。
+
+
+% 2.2.2 IRTranslator的设计
+\subsection{IRTranslator的设计}
+GMIR作为GlobalISel框架衔接LLVM IR与目标架构MIR的核心中间层，其指令生成逻辑明确划分为架构无关与架构相关两大类别，既保留了通用优化的灵活性，又通过架构特化逻辑适配不同硬件的底层约束。其中，架构无关指令涵盖算术运算、逻辑运算等基础操作，这类指令仅描述通用机器语义，不依赖具体硬件特性，可由GlobalISel框架统一生成，无需目标架构单独开发适配代码；而架构相关指令则聚焦于与硬件约束强绑定的场景，典型如函数调用、形式参数处理等，其核心依赖目标架构的ABI调用约定（如寄存器分配规则、栈帧布局、参数传递方式等），必须结合具体架构特性进行定制化实现。
+
+\par
+
+IRTranslator作为LLVM IR到GMIR的核心翻译器，负责整体指令翻译流程的调度。在GlobalISel框架中，IRTranslator以函数为基本处理单元，遍历LLVM IR中的各类指令，并将其逐步下沉为对应的通用机器指令表示，从而完成从高级中间表示到通用机器语义的转换。
+
+\par
+
+在翻译过程中，IRTranslator通过模块化设计避免直接处理与目标架构强相关的细节，而是将函数调用等高度依赖ABI约定的语义下沉任务委托给目标后端实现。其中，CallLowering作为其关键依赖组件，负责参数传递、返回值处理以及调用约定的具体实现。IRTranslator在处理函数入口、调用指令和返回指令时，通过统一接口调用目标后端提供的CallLowering，从而实现通用翻译框架与目标架构定制逻辑之间的有效解耦。
+
+
+通过这种分层协作机制，GlobalISel在保持IRTranslator框架通用性的同时，实现了对不同目标架构ABI差异的良好适配，达到了通用指令翻译逻辑与目标架构定制逻辑之间的有效解耦。IRTranslator与CallLowering之间的关系及其在GMIR生成过程中的协作方式如图\ref{fig:irtranslator_call}所示。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.5\textwidth]{pics/irtranslator_call.png}
+	\caption{GMIR生成流程图}
+	\label{fig:irtranslator_call}
+\end{figure}
+
+以函数调用约定处理为例，这一过程需要将LLVM IR中抽象的函数调用、参数传递语义，转换为符合目标架构规范的GMIR：不同架构的寄存器布局、栈对齐要求、参数存储优先级（寄存器优先或栈优先）存在显著差异，因此需由各目标架构单独实现专属的CallLowering模块，通过解析自身ABI约定完成LLVM IR到架构相关 GMIR 的精准映射，确保后续指令选择与硬件执行的兼容性。
+
+\par
+
+GMIR生成的执行过程是以函数为粒度进行的，与SelectionDAGISel是以基本块为粒度不同，由于函数可以分为包含形参信息的函数头与函数体，函数体又有基本块等表示，所以按处理的函数信息不同，将执行过程分为4个主要的阶段，如图\ref{fig:gmir_gen_flowchart}所示。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{pics/gmir_gen_flowchart.png}
+	\caption{GMIR生成流程图}
+	\label{fig:gmir_gen_flowchart}
+\end{figure}
+
+\begin{enumerate}
+	\item
+	创建基本块：这个阶段会遍历函数的LLVM IR基本块，依次为每个基本块创建对应的GMIR的基本块，并且会保留相关的控制流信息，形成初始的控制流图。还会为每个函数添加一个额外的基本块（EntryBB），作为函数入口。
+	
+	\item
+	处理形参：根据目标架构的调用约定规则处理函数的入参，为每个入参生成一条从传参寄存器复制到虚拟寄存器的GMIR复制指令，或者为入参生成一条从栈上加载到虚拟寄存器的GMIR加载指令，并将生成的指令放入EntryBB中。
+	
+	\item 
+	转换函数体指令：按RPOT（Reverse Post-Order Traversal，逆后序遍历）的方式遍历函数的控制流图，对于每个基本块，以自顶向下的顺序将基本块里的每条指令转换成一组GMIR指令。
+	
+	\item 
+	更新控制流图：在第3阶段的指令转换过程中，有些原本不是跳转的指令会被翻译成跳转指令（例如，跳转指令的条件码是由多条连续的逻辑运算指令生成的，此时就有可能会拆分逻辑运算生成多个跳转指令），导致原有基本块被拆分出多个新基本块，破坏原有的控制流。因此在基本块指令转换好后，需要维护好这些新基本块与原有基本块的控制流边，形成新的控制流图。此外，转换过程还可能会将EntryBB和函数体中的第一个基本块合并，此时控制流信息也要跟着更新。
+	
+\end{enumerate}
+
+
+% 2.2.3 IRTranslator的实现
+\subsection{IRTranslator的实现}
+按照2.2.2节的设计可知，IRTranslator的实现主要分为架构无关和架构相关两类，算术运算、逻辑运算等通用操作由框架统一实现，而与DSP架构强绑定的函数调用、形参传递、返回值处理等核心场景，则需基于DSP的ABI规范、寄存器布局及数据传输规则进行定制化开发。对于DSP架构而言，上述场景在寄存器宽度受限、数据类型支持不完整以及端序特性等方面均存在显著差异，因此成为IRTranslator实现中的重点与难点。
+
+\par
+
+为适配DSP的架构特性，本文基于ValueHandler的接口实现了DSPIncomingValueHandler与DSPOutgoingValueHandler两个辅助类，分别负责函数入参出参的传递与返回值的接收，其核心结构如图\ref{fig:valuehandler}所示。这一设计将参数与返回值的处理逻辑从IRTranslator主流程中解耦出来，使调用相关的架构特化代码能够集中管理，提升了整体实现的可维护性与可扩展性。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{pics/valuehandler.png}
+	\caption{DSPValueHandler核心函数}
+	\label{fig:valuehandler}
+\end{figure}
+
+\begin{enumerate}
+	\item
+	getStackAddress用于生成DSP架构下栈帧空间的目标地址虚拟寄存器，根据上下文选择基于帧索引还是直接操作栈指针，为出参的栈上存储提供地址支持。
+	
+	\item
+	assignValueToReg用于将目标值分配至物理寄存器，核心完成COPY指令构建，并按需标记虚拟寄存器的状态属性。
+	
+	\item 
+	assignValueToAddress用于完成栈上数据的加载和存储，将其加载或存储在合适的位置并在需要时进行扩展。
+	
+	\item 
+	assignCustomValue是针对DSP架构的核心定制化实现，通过数据的合并与拆分逻辑，解决了非法类型的跨函数传输问题，并根据DSP的端序特性调整高低位数据的存储顺序，确保跨函数数据传输的一致性，进而更新参数寄存器信息；通过G\_COPY指令将拆分后的数据映射至目标物理寄存器，并支持Thunk回调机制实现复制逻辑的延迟执行，提升编译流程灵活性。该实现精准适配了DSP架构的寄存器宽度约束，解决了通用调用降低逻辑无法处理的特殊类型传输问题，确保非法类型参数跨函数传递的正确性，同时保持了与GlobalISel框架的接口兼容性。
+	
+	
+\end{enumerate}
+
+
+在具体实现中，IRTranslator需要分别完成函数调用、形式参数以及返回值的降级处理。其中，以函数调用的降级过程（lowerCall）为例，其主要流程可概括为以下几个阶段：
+
+\begin{enumerate}
+	\item
+	调用合法性校验：约束调用约定（如DSP仅支持C语言调用约定），确保跨函数调用的二进制兼容性；校验入参和返回值类型是否为架构支持的类型，提前拦截非法调用以避免后续流程异常。
+	
+	\item
+	栈帧预处理与调用指令构建：通过DSP::ADJCALLSTACKDOWN指令创建栈帧调整起始指令，为调用过程预留栈空间；根据被调用者类型动态选择指令：寄存器寻址或PIC场景使用间接调用的DSP::CALLR指令，其余场景使用直接调用的DSP::CALL指令，并标记栈指针为隐式定义，添加调用保存寄存器掩码，确保调用过程中寄存器状态的一致性；添加被调用者标识至调用指令，为后续指令选择提供目标地址信息。
+	
+	\item 
+	出参传递与栈空间校准：将参数按DSP数据类型规则拆分，生成适配架构的ArgInfo列表；通过DSPCCState结合ABI约定，解析参数的寄存器/栈分配策略，由DSPOutgoingValueAssigner完成分配计算及参数传递（寄存器参数通过G\_COPY指令映射至物理寄存器，栈参数通过G\_STORE指令存储至指定栈地址）；获取DSP架构栈对齐要求（优先使用函数重写对齐值，默认使用目标机栈对齐），将栈空间大小按对齐要求校准，确保栈访问符合硬件约束。
+	
+	\item 
+	调用指令提交与间接调用约束：将构建完成的调用指令（CALL/CALLR）插入当前基本块，若为CALLR指令，通过constrainAllUses结合DSP的RegisterBank信息及目标指令信息，约束指令操作数的合法性，避免跨银行访问或非法寄存器使用。
+	
+	\item 
+	返回值处理与栈帧恢复：若返回值非空，通过DSPIncomingValueAssigner解析返回值分配规则，将物理返回寄存器中的值映射至通用虚拟寄存器；通过DSP::ADJCALLSTACKUP指令恢复栈指针，释放调用过程占用的栈空间，完成整个调用流程。	
+	
+\end{enumerate}
+
+通过上述实现，IRTranslator在DSP架构下实现了对函数调用、参数传递与返回值处理的完整支持，有效解决了通用调用降低逻辑在寄存器宽度受限和非法类型处理方面的不足。该实现不仅保证了GMIR生成阶段的语义正确性，也为后续指令合法化与指令选择阶段提供了结构清晰、约束明确的中间表示基础。
+
+
+%*********************************************************************
+% 2.3 指令合法化
+%*********************************************************************
+\section{指令合法化}
+经过IRTranslator的转换，以LLVM IR表示的函数已经变成了GMIR表示的函数。这一转换并非简单的语法映射，而是伴随语义适配的深度处理：为了衔接后续架构适配流程，IRTranslator会在转换过程中嵌入部分目标架构的基础信息（如寄存器组初步约束、调用约定相关标记等）。但从设计本质来看，GMIR作为通用机器中间表示的核心属性并未改变，转换生成的绝大多数GMIR指令仍保持架构无关性，这种设计虽保障了跨架构复用性，但这也必然导致一个核心问题：部分GMIR指令可能超出目标架构的硬件能力范围，成为非法指令，即有部分GMIR指令会存在目标架构不支持的情况。
+
+\par
+
+非法GMIR指令的产生源于架构能力的固有差异，最典型的场景便是数据位宽不匹配。例如，针对16位字长的嵌入式架构，其硬件指令集仅支持16位或32位运算，若IRTranslator因LLVM IR中原有的64位数据运算生成了64位的G\_ADD指令，该指令便会因超出硬件处理能力而成为非法指令。类似地，部分架构不支持向量运算或特定类型的内存访问，对应的GMIR向量指令、特殊寻址模式指令也会被判定为非法。
+
+\par
+
+为解决非法GMIR指令问题，需要实现一个独立的合法化Pass，该Pass是衔接GMIR与目标架构特性的关键枢纽。其核心工作机制是：首先加载目标架构的完整指令集描述信息（包括支持的数据类型、运算操作、寄存器约束等元数据），然后以函数为单位遍历GMIR代码，将所有非法指令替换为语义等价的合法GMIR指令序列，即完全适配目标架构硬件能力的指令组合。
+
+
+% 2.3.1 Legalizer的设计
+\subsection{Legalizer的设计}
+整个合法化过程按照函数级粒度+结构化遍历的执行逻辑，确保指令转换后的完整性与正确性。在遍历策略上，Pass采用RPOT算法从函数入口开始扫描所有基本块，这种遍历顺序能保证父基本块的指令处理优先于子基本块，避免因分支依赖导致的转换冲突。进入单个基本块后，再按自顶向下的顺序逐行处理指令：对每条GMIR指令执行合法性校验，若判定为非法则立即触发转换逻辑，直至该基本块所有指令均合法后，再进入下一个基本块，直至整个函数的GMIR指令全部完成合法化。
+
+\par
+
+指令合法化的处理过程实际上包含了两个关键子问题的处理，二者共同构成了指令合法化的完整技术链路：
+
+\begin{enumerate}
+	\item
+	非法指令识别：合法化Pass通过查询目标架构提供的LegalizerInfo接口实现判定：一方面校验指令操作码与数据类型的组合是否支持，如G\_ADD指令是否支持64位数据，另一方面检查指令的操作数约束是否符合架构要求，如寄存器银行归属、内存对齐方式等。例如，针对ARM架构的LegalizerInfo会明确标记G\_FADD（浮点加法）仅支持32位和64位，若GMIR中出现16位浮点加法指令，则直接判定为非法。此外，部分架构对指令的隐含约束也会纳入识别逻辑，确保识别结果的精准性。
+	
+	\item
+	非法指令转换：当识别出非法指令后，需通过重构生成合法指令序列，核心要求是保持语义不变并且实现架构兼容。转换策略则根据非法原因的不同分为两类：对于数据位宽不匹配的情况，采用拆分+组合策略，如将64位G\_ADD拆分为两个32位G\_ADD指令，配合进位标志处理实现等价运算；对于架构不支持的操作类型，如无硬件除法单元的架构遇到G\_SDIV指令，则采用算法模拟的策略，通过减法、移位等基础指令组合实现除法语义。值得注意的是，转换过程中还需同步处理虚拟寄存器的类型调整与依赖关系维护，确保重构后的指令序列与原指令在数据流向和执行效果上完全一致。
+	通过上述两个子问题的协同解决，合法化Pass最终实现了GMIR从通用到架构适配的关键跨越，为后续的寄存器银行选择、目标指令生成等流程提供了合法且可靠的输入基础。
+	
+\end{enumerate}
+
+
+% 2.3.2 Legalizer的实现
+\subsection{Legalizer的实现}
+根据2.3.1的设计可知，合法化阶段的核心任务是非法指令识别和非法指令转化。在实现层面，合法化流程首先需要明确目标架构所支持的LLT类型集合，其中既包括数据类型，也包括地址类型与内存访问相关类型。这一类型集合构成了合法性判定的基础边界，用于描述目标架构在位宽、对齐及寻址能力等方面的硬件约束。
+
+\par
+
+在此基础上，需要构建一组合法化规则集，用于对GMIR指令进行系统化的合法性判定与处理策略选择。规则集的核心载体是LegalityQuery对象，该对象通过结构化封装的方式，将合法性判定所需的关键信息统一组织为标准数据结构，具体包括指令操作码、各操作数索引对应的LLT类型、MachineMemOperand中描述的内存访问字节大小，以及针对内存类指令的原子性与顺序约束等信息。DSP架构的部分合法化规则集如下所示。
+
+\lstset{language=c++}
+\begin{lstlisting}
+DSPLegalizerInfo::DSPLegalizerInfo(const DSPSubtarget &ST)
+		: STI(ST), XLen(STI.getXLen()), SXLen(LLT::scalar(XLen)) { 
+	const LLT S1 = LLT::scalar(1);
+	const LLT S8 = LLT::scalar(8);
+	const LLT S16 = LLT::scalar(16);
+	const LLT S32 = LLT::scalar(32);
+	const LLT S64 = LLT::scalar(64);
+	const LLT P0 = LLT::pointer(0, 32);
+	const LLT SDoubleXLen = LLT::scalar(2 * XLen);
+	......
+		
+	auto &ShiftActions = getActionDefinitionsBuilder({G_ASHR,G_LSHR,G_SHL});
+	if (ST.is64Bit())
+		ShiftActions.customFor({{S32, S32}});
+	ShiftActions.legalFor({{S32, S32}, {S32, SXLen}, {SXLen, SXLen}})
+		.widenScalarToNextPow2(0)
+		.clampScalar(1, S32, SXLen)
+		.clampScalar(0, S32, SXLen)
+		.minScalarSameAs(1, 0);
+		......
+\end{lstlisting}
+
+这种设计在工程实践中具有显著优势：一方面，其他编译Pass可直接基于LegalityQuery对象查询指令合法性，无需重复解析指令内部结构，从而降低实现复杂度；另一方面，合法性判定过程无需构造实际指令实例，避免了额外的对象创建与析构开销，在提升编译效率的同时，也使该对象能够直接作为谓词约束的输入参数，支撑更为复杂和精细的合法性判断逻辑。
+
+\par
+
+合法化规则集的生成与执行遵循统一的标准流程。通过调用getActionDefinitionsBuilder接口，可为指定操作码构建专属的合法化规则集；当输入多个操作码时，该接口会自动将其绑定至同一规则集中，适用于操作语义相近、合法化策略一致的指令类型。规则集中的各条规则按照自上而下的优先级顺序依次匹配，当某条指令成功匹配并完成合法性判定后，其后续处理即告结束，下一条指令将重新从规则集起始位置开始匹配，从而保证每条指令都能获得唯一且确定的合法化结果。
+
+\par
+
+若某条指令未匹配到任何规则，则直接判定为合法化失败；而当规则集中未显式声明指令为合法时，系统将自动触发类型扩展、拆分或重写等数据类型转换逻辑，为后续指令选择阶段提供可执行的中间表示基础。通过这种机制，合法化阶段能够在保持规则清晰性的同时，兼顾灵活性与健壮性。
+
+\par
+
+对于一些合法化逻辑复杂的指令，仅依靠框架提供的标准化的规则集无法完成适配，需要实现自定义合法化函数legalizeCustom来承载专属的合法化逻辑。除此之外，对于架构强相关的内建函数，需要额外实现legalizeIntrinsic合法化函数。以G\_VASTART指令（可变参数函数中标记可变参数起始位置的核心指令）的合法化逻辑为例，其通过legalizeCustom实现自定义逻辑的核心目标是：将通用的G\_VASTART指令，转换为DSP架构可执行的、与栈帧布局强相关的内存存储操作。实现代码如下：
+
+\lstset{language=c++}
+\begin{lstlisting}
+bool DSPLegalizerInfo::legalizeVAStart(MachineInstr &MI,
+		MachineIRBuilder &MIRBuilder) const {
+	assert(MI.getOpcode() == TargetOpcode::G_VASTART);
+	MachineFunction *MF = MI.getParent()->getParent();
+	DSPMachineFunctionInfo *FuncInfo = MF->getInfo<DSPMachineFunctionInfo>();
+	int FI = FuncInfo->getVarArgsFrameIndex();
+	LLT AddrTy = MIRBuilder.getMRI()->getType(MI.getOperand(0).getReg());
+	auto FINAddr = MIRBuilder.buildFrameIndex(AddrTy, FI);
+	assert(MI.hasOneMemOperand());
+	MIRBuilder.buildStore(FINAddr, MI.getOperand(0).getReg(), *MI.memoperands()[0]);
+	MI.eraseFromParent();
+	return true;
+}
+\end{lstlisting}
+
+
+%*********************************************************************
+% 2.4 寄存器组选择
+%*********************************************************************
+\section{寄存器组选择}
+虽然指令合法化引入了目标架构指令信息，将GMIR生成阶段生成的GMIR变成了目标架构合法的GMIR，但指令合法化处理后的GMIR指令仍然没有目标架构寄存器信息。指令里的虚拟寄存器操作数只有一个数据类型，用于表示其类型和位数大小。所以，全局指令选择模块需要为生成的GMIR决定待分配寄存器组类型，即寄存器组选择。
+
+\par
+
+寄存器组选择是全局指令选择模块的第三个基本Pass，它会利用目标架构的寄存器信息，自顶向下的为合法化后的GMIR指令中的虚拟寄存器操作数分配合适的寄存器组类型，并且它还可以利用GMIR指令之间的关系选取一个较优的寄存器组类型。这也是不能直接在GMIR生成处理中为直接分配寄存器类型的原因之一：在GMIR生成阶段生成指令时，LLVM IR还没有全部转换成GMIR，无法利用指令之间的关系进行寄存器类型择优。
+
+
+% 2.4.1 寄存器组
+\subsection{寄存器组}
+在GlobalISel框架中，寄存器组（Register Bank）是目标架构层面的关键抽象组件，其核心设计目标是在满足硬件指令访问约束的前提下，通过弱约束分组机制平衡寄存器分配的灵活性与跨寄存器资源的数据交互开销，从而兼顾编译效率与生成代码性能。与传统编译器中严格限定位宽和用途的寄存器类（Register Class）不同，寄存器组仅关注寄存器的最大数据宽度及支持的操作集合，而不对具体物理编号和精确位宽做强约束，使编译器在分配阶段拥有更大的选择空间。
+
+\par
+
+寄存器组的提出源于硬件架构的实际限制。许多嵌入式处理器、DSP及异构计算平台将物理寄存器划分为多个相互独立的寄存器文件，不同文件之间的寄存器无法被同一条指令同时访问。若操作数分布在不同寄存器文件中，必须通过额外的数据复制指令完成中转，从而引入不必要的性能开销。寄存器组通过将物理寄存器按文件属性进行逻辑分组，使编译器能够在寄存器分配阶段优先将关联变量分配到同一寄存器组中，从源头减少跨文件数据复制。
+
+\par
+
+在实际架构中，寄存器组通常与运算单元类型紧密对应，例如通用寄存器组（GPR）和浮点寄存器组（FPR）。GMIR 指令在寄存器组使用上遵循硬性约束+柔性适配的原则：一方面，特定指令必须使用指定寄存器组（如浮点运算只能使用 FPR）；另一方面，部分指令允许在多个寄存器组间灵活分配，其最终选择由后续运算需求决定，从而避免不必要的跨组数据复制。该弱约束设计不仅降低了寄存器分配复杂度，也显著减少了跨寄存器文件的数据搬运开销，尤其适合嵌入式与DSP等资源受限架构。同时，寄存器组的抽象方式具有良好的扩展性，新架构仅需在目标描述中定义寄存器组属性即可完成适配，无需修改编译器核心逻辑。表\ref{tab:reg_type_class}列出了DSP架构下使用的寄存器组与寄存器类划分情况，为后续寄存器银行选择与物理寄存器分配过程提供基础。
+
+\begin{table}[htbp]
+	\centering
+	\caption{DSP架构下寄存器抽象类型与分类}
+	\label{tab:reg_type_class}
+	
+	\renewcommand{\arraystretch}{1.2}
+	{\footnotesize
+		\begin{tabularx}{\linewidth}{
+				>{\raggedright\arraybackslash}X
+				>{\raggedright\arraybackslash}X
+			}
+			\toprule
+			\textbf{寄存器抽象层级} & \textbf{具体实例} \\
+			\midrule
+			Register Bank &
+			GPRBRegBank、CRBRegBank、VPRBRegBank \\
+			
+			Register Class &
+			GPR32EVEN、GPR32、GPR64、VTRegs、OBMRegs、VPR4Out、VPR8Out、VPR16Out、VPRSf、VPRHf 等 \\
+			\bottomrule
+		\end{tabularx}
+	}
+\end{table}
+
+
+% 2.4.2 寄存器组选择的设计
+\subsection{寄存器组选择的设计}
+寄存器组选择阶段的核心任务是在合法化完成之后，为GMIR指令中引入的虚拟寄存器操作数分配合适的寄存器组，从而确保后续指令选择与物理寄存器分配过程能够满足目标架构的硬件访问约束。在DSP目标架构下，寄存器组选择模块的整体设计结构如图\ref{fig:registerbankinfo_class}所示。该模块主要由DSPGenRegisterBankInfo与DSPRegisterBankInfo两部分构成：前者由TableGen根据DSPRegisterBanks.td文件自动生成，负责描述目标架构中可用的寄存器组及其基础属性；后者则作为目标后端的核心实现类，封装了寄存器组选择所需的全部元信息与决策逻辑，包括指令到寄存器组的映射规则、操作数属性以及不同映射方案之间的代价评估。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.8\textwidth]{pics/registerbankinfo_class.png}
+	\caption{DSP 架构下寄存器组选择模块结构}
+	\label{fig:registerbankinfo_class}
+\end{figure}
+
+
+% 2.4.3 寄存器组选择的实现
+\subsection{寄存器组选择的实现}
+基于上一节对寄存器组选择机制的设计分析，本节将从寄存器组定义、映射结构定义及映射逻辑实现三个核心维度，详细阐述DSP架构编译器后端寄存器组选择功能的具体实现方案。
+
+1.寄存器组的定义
+
+DSP处理器内部包含了多种不同类型的寄存器，不同寄存器在位宽、用途及访问方式上存在显著差异。为保证寄存器分配与硬件执行语义的一致性，需要首先对目标架构中可参与寄存器分配的寄存器资源进行建模。表\ref{tab:dsp_register_class}给出了DSP架构中主要寄存器类的数量、位宽及功能特性，为后续寄存器组划分与寄存器组选择策略的设计提供硬件基础。表中列出的仅为DSP架构下部分不透明寄存器类及其功能描述，其中不透明寄存器类是指对编译器后端可见、并参与寄存器分配与调度的寄存器集合；而对开发人员透明的寄存器类（如中断返回地址寄存器、基址寄存器、偏移寄存器及取模寄存器等）由于其使用方式固定，不参与寄存器分配过程，故不在此列出。
+
+\begin{table}[htbp]
+	\centering
+	\caption{DSP 架构主要寄存器类特性}
+	\label{tab:dsp_register_class}
+	
+	\renewcommand{\arraystretch}{1.2}
+	{\footnotesize
+		\begin{tabularx}{\linewidth}{
+				>{\raggedright\arraybackslash}m{2.5cm}
+				>{\centering\arraybackslash}m{1.0cm}
+				>{\centering\arraybackslash}m{1.4cm}
+				>{\centering\arraybackslash}X
+			}
+			\toprule
+			寄存器类 & 数量 & 宽度 / bit & 功能描述 \\
+			\midrule
+			通用寄存器（GR） & 32 & 32 & 使用频率最高的寄存器，用于存放标量指令中的运算数据及地址信息，支撑整型运算与内存访问等基础操作 \\
+			
+			矢量寄存器（VR） & $4 \times 16$ & 640 & 用于存放矢量运算数据，采用四路并行设计，支持 SIMD 模式下多数据元素的并行加载、存储与计算 \\
+			
+			控制寄存器（CR） & 1 & 32 & 用于保存处理器状态信息，包括进位标志、溢出标志以及比较指令的结果标志等，参与指令执行控制与条件判断 \\
+			\bottomrule
+		\end{tabularx}
+	}
+\end{table}
+
+在DSP架构编译器后端的RegisterInfo类中，通用寄存器被划归至CPURegs寄存器类，矢量寄存器被划归至CPUVecRegs寄存器类，控制寄存器被划归至CCR寄存器类。上述寄存器类的划分构成了寄存器组定义的基础，基于该分类体系完成了DSP架构寄存器组的定义如下：
+	
+\lstset{language=c++}
+\begin{lstlisting}
+def GPRBRegBank : RegisterBank<"GPRB", [GPR32, GPR64]>;
+def VPRBRegBank : RegisterBank<"GPRB", [VPR4Out, VPR8Out, VPR16Out]>;
+def CRBRegBank  : RegisterBank<"CRB",  [CCR]>;
+\end{lstlisting}
+
+2.映射结构的定义
+
+图\ref{fig:mapping}直观展示了GlobalISel框架中寄存器组选择阶段采用的分层映射结构，以及该结构在不同类型指令上的具体应用方式。该映射体系自底向上由PartialMapping、ValueMapping和InstructionMapping三个层次逐级构成，用于描述指令操作数到寄存器组的映射关系及其代价评估过程。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/mapping.png}
+	\caption{寄存器组分层映射结构图}
+	\label{fig:mapping}
+\end{figure}
+
+在最底层，PartialMapping用于描述操作数中某一连续比特区间到特定寄存器组的映射关系，支持大整数拆分、向量拆分以及非对齐布局等情况。例如，对于64位整型加法指令G\_ADD，其操作数可通过一个PartialMapping将$0\sim64$位整体映射至通用寄存器组GPRB；而对于32位整型比较指令G\_ICMP，其操作数仅需将$0\sim32$位映射至GPRB。对于控制类操作数，则通过PartialMapping将对应比特区间映射至控制寄存器组CRB；在矢量指令VADD场景下，宽达2048位的矢量操作数整体映射至矢量寄存器组VPRB。
+
+\par
+
+ValueMapping由一个或多个PartialMapping组合而成，用于描述单个操作数到寄存器组的完整映射方案。图中展示了同一类通用操作数可能存在多种ValueMapping方案的情况，不同方案对应不同的映射代价，用于反映寄存器使用效率或潜在的跨寄存器组数据复制开销。如图中的64位G\_ADD，其操作数既可以用一个GPR64来映射，又可以用两个GPR32来映射。
+
+\par
+
+在最上层，InstructionMapping对一条指令的所有操作数映射进行统一建模，其不仅包含每个操作数对应的ValueMapping，还关联了该指令整体映射方案的代价值。以图中所示为例，G\_ADD、G\_ICMP以及VADD等指令均可生成各自的InstructionMapping，其总代价由各操作数映射代价综合决定。寄存器组选择阶段将基于这些代价信息，在满足指令硬性约束的前提下选择最优映射方案。
+
+\par
+
+在具体实现中，主要有两种寄存器组分配策略。其中，Fast策略仅为指令选择默认可用的寄存器组组合，不对备选方案进行枚举与评估，因此实现简单、运行开销低，适用于对编译速度敏感的场景；而Greedy策略则在默认映射方案的基础上，进一步枚举目标架构允许的所有合法寄存器组组合，逐一计算其映射代价，并最终选择代价最低的方案。该策略能够在更大搜索空间内优化寄存器组分配，减少跨寄存器组的数据复制开销，但相应地增加了寄存器组选择阶段的计算成本。
+
+\par
+
+在LLVM的RegisterBankInfo实现中，PartialMapping、ValueMapping等结构通常以静态表的方式定义，用于描述不同位宽、不同操作数类型在目标架构下的寄存器组映射规则。通过这种表驱动的实现方式，寄存器组选择阶段能够在不依赖具体指令实例的前提下，高效查询操作数的映射方案及其对应代价，从而支撑后续InstructionMapping的构建与选择。下面代码片段给出了DSP目标架构中PartialMapping与ValueMapping的典型定义方式，其中PartialMapping用于描述操作数比特区间到寄存器组的基础映射，而ValueMapping则通过组合一个或多个PartialMapping，形成对单个操作数的完整寄存器组映射描述。
+
+\lstset{language=c++}
+\begin{lstlisting}
+PartialMapping PartMappings[] = {
+	{0, 32, GPRBRegBank},
+	{0, 64, GPRBRegBank},
+	{0, 32, CRBRegBank},
+	...... };
+
+ValueMapping ValueMappings[] = {
+	{nullptr, 0},
+	{&PartMappings[PMI_GPRB32], 1},
+	{&PartMappings[PMI_GPRB32], 1},
+	{&PartMappings[PMI_GPRB32], 1},
+	{&PartMappings[PMI_GPRB64], 1},
+	{&PartMappings[PMI_GPRB64], 1},
+	{&PartMappings[PMI_GPRB64], 1},
+	...... };
+\end{lstlisting}
+
+通过上述分层映射结构，寄存器组选择阶段实现了从比特级映射到指令级决策的逐层抽象，既避免了过早绑定具体物理寄存器，又能够在全指令粒度上评估不同寄存器组分配方案的代价，为后续指令选择与寄存器分配阶段提供了清晰的寄存器资源使用边界。
+
+
+3.映射逻辑的实现
+
+寄存器组选择的核心逻辑通过重载RegisterBankInfo类中的相关接口函数实现，其中最关键的是getInstrMapping与getInstrAlternativeMapping两个函数。前者用于为指令生成默认的寄存器组映射方案，后者则用于在必要时提供备选映射方案，以支持更灵活的寄存器组分配策略。
+
+\par
+
+getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。，其实现采用以规则驱动为核心的寄存器组映射构建流程。该流程首先以指令操作码为入口，对可直接由 TableGen 规则覆盖的场景进行快速判定。对于非通用指令及PHI指令，优先尝试使用TableGen自动生成的映射结果；一旦匹配成功，即可直接返回对应的InstructionMapping，从而避免后续不必要的分析与代价评估。
+
+\par
+
+当TableGen映射不可用时，算法进入基于操作数语义的通用映射阶段。此阶段以操作数为粒度，遍历指令中的所有寄存器操作数，并依据其LLT进行映射决策。在完成默认映射后，算法进一步结合指令语义对映射结果进行修正。对于使用条件值的指令，其条件操作数需显式映射至控制寄存器组，以保证条件语义与目标架构控制寄存器模型的一致性。最终，算法基于上述映射规则构建并返回完整的InstructionMapping。
+
+\begin{algorithm}[htbp]
+	\SetAlgoLined
+	\linespread{1}\selectfont
+	
+	\KwIn{MI: Machine Instruction}
+	\KwOut{InstructionMapping}
+	\caption{Core Logic of getInstrMapping}
+	\label{alg:mapping-core}
+	
+	Opc \gets opcode of MI\;
+	
+	\If{MI is non-generic or Opc is G\_PHI}{
+		Mapping \gets getInstrMappingImpl(MI)\;
+		\If{Mapping is valid}{
+			\Return Mapping\;
+		}
+	}
+	
+	Initialize operand mapping array OpdsMapping\;
+	
+	\BlankLine
+	\ForEach{operand op in MI}{
+		\If{op is a register and op.reg is valid}{
+			Obtain the low-level type Ty of op.reg\;
+			\If{Ty is invalid or bit width of Ty $\le$ 32}{
+				Assign op to a 32-bit GPR container\;
+			}
+			\Else{
+				Assign op to a 64-bit GPR container\;
+			}
+		}
+	}
+	
+	\BlankLine
+	\If{Opc consumes a condition value}{
+		Override the mapping of the condition operand to the control register bank (CRB)\;
+	}
+	
+	\If{Opc produces a comparison result}{
+		Force the result operand to use a 32-bit GPR container\;
+	}
+	
+	\BlankLine
+	Construct and return the final InstructionMapping from OpdsMapping\;
+\end{algorithm}
+
+
+%*********************************************************************
+% 2.5 机器指令选择
+%*********************************************************************
+\section{机器指令选择}
+机器指令选择是GlobalISel框架的第二阶段核心任务，承接第一阶段（GMIR生成、指令合法化、寄存器类型选择）的处理结果，其核心目标是将经过合法化的、附着目标架构信息的通用机器中间表示GMIR，完整转换为目标架构专属的机器中间表示MIR，为后续基于MIR的寄存器分配、指令调度、窥孔优化等后端流程提供合法输入，是衔接通用中间表示与架构专属表示的关键枢纽。
+
+\par
+
+机器指令选择以单个函数为处理粒度，基于树覆盖的指令选择算法，通过将GMIR指令序列构建为AST，再通过树模式匹配映射为目标架构指令序列，确保语义等价性与架构兼容性。目前框架实现了两种树覆盖的方式：一种是基于表驱动的自动状态机进行的自动覆盖方式；另一种是基于固定模式的手动覆盖方式。这两种覆盖方式在每次覆盖的时候都只会产生一种成功匹配的树模式，因此可以直接生成对应的MIR指令序列\cite{PengLLVM2024}。值得注意的是，GlobalISel的机器指令选择与传统基于DAG的指令选择存在显著设计差异，后者因引入DAG中间表示，需在选择阶段额外执行拓扑排序流程，导致实现复杂度与设计难度显著提升，而GlobalISel通过直接基于GMIR的树覆盖匹配规避了这一环节，简化了整体设计逻辑。
+
+\par
+
+机器指令选择采用PROT+自底向上处理的执行逻辑，确保指令依赖关系的正确性与处理效率，具体流程如下：首先以单个函数为处理单元，采用RPOT算法从函数底部开始依次扫描所有基本块，该遍历顺序可保障父基本块的指令处理滞后于子基本块，避免因分支依赖导致的未定义指令引用问题；进入单个基本块后，按自底向上的顺序逐行处理每条GMIR指令，处理前先判断当前指令是否已生成对应的MIR指令，若已生成则直接跳过以避免重复处理，若未生成则以该指令为根节点触发自动匹配模块与手动匹配模块的协同匹配流程；匹配成功后由指令生成模块输出对应的MIR指令序列，若匹配失败则直接触发编译报错；最后以基本块为单位迭代执行上述流程，直至整个函数的所有GMIR指令均成功转换为MIR指令或触发报错，完成该函数的机器指令选择任务。
+
+
+% 2.5.1 匹配状态机
+\subsection{匹配状态机}
+在LLVM的指令选择体系中，匹配状态机是支撑基于表驱动的树覆盖指令选择的核心底层组件，其本质是一种由TableGen工具自动生成的FSM（Finite State Machine，有限状态机），其核心作用是将GMIR指令构成的AST与目标架构的指令模式进行自动化匹配，从而确定可映射为MIR的合法目标指令模式。
+
+\par
+
+在生成阶段，通过在td文件中以树模式的形式描述目标架构指令的结构特征。TableGen工具对所有指令树模式进行解析，提取其中的关键信息，包括操作码、操作数类型、寄存器组约束以及数据位宽等，并将这些特征系统化地编码为状态机的状态节点与转移条件。其中，状态节点对应指令树在不同层级上的特征匹配状态，而转移条件则描述从当前特征匹配到下一层特征的合法规则。最终，TableGen将所有状态节点与转移关系整合为完整的状态机代码，覆盖从初始状态、匹配中状态到成功匹配状态或失败状态的完整流程，且每一个成功匹配状态均唯一对应一条目标架构指令模式。
+
+\par
+
+在机器指令选择阶段，匹配状态机针对单条GMIR指令的执行流程可概括为以下几个步骤：
+
+\begin{enumerate}
+	\item
+	指令树构建：以当前待处理的GMIR指令为根节点，递归遍历其操作数、子指令，构建完整的抽象语法树。
+	
+	\item
+	状态机初始化：将状态机置为初始状态，从指令树的叶子节点开始向上遍历。
+	
+	\item 
+	状态转移匹配：在遍历过程中，根据当前AST节点的特征触发状态机的转移并进入对应状态；若在某一节点处不存在满足条件的转移路径，则判定该子树匹配失败，状态机回退至最近的分支点并尝试其他可行路径；当遍历至根节点且状态机进入成功匹配状态时，即输出对应的目标架构指令树模式。
+	
+\end{enumerate}
+
+为保证匹配结果的确定性，LLVM中的指令匹配状态机被设计为DFA（Deterministic Finite Automaton，确定性有限状态机）。在该设计下，同一指令树在匹配过程中仅会触发唯一的一条状态转移路径，并最终生成唯一的成功匹配结果，从机制上避免了多模式冲突问题。
+
+\par
+
+匹配状态机在指令选择阶段的主要优势体现在自动化与可扩展性。开发时无需为每条目标指令手工编写匹配逻辑，只需在td文件中定义相应的指令树模式，即可由TableGen自动生成匹配状态机，从而降低目标架构适配所需的代码量。当目标架构新增指令时，也仅需补充对应的树模式并重新生成状态机，无需修改编译器核心代码，保证了指令选择框架的稳定性与可维护性。此外，匹配状态机采用确定性遍历机制，在匹配过程中避免了对所有指令模式的穷举搜索。相较于手动遍历或回溯式匹配方法，该机制能够显著提升指令匹配效率。
+
+
+% 2.5.2 机器指令选择的设计
+\subsection{机器指令选择的设计}
+从功能划分的角度来看，机器指令选择可划分为三个模块：自动匹配模块、手动匹配模块以及指令生成模块。三者共同完成从GMIR到MIR的语义映射过程。
+
+\par
+
+1.自动匹配模块
+
+自动匹配模块负责构建基于表驱动的自动状态机，通过状态转移的方式自动完成GMIR指令与目标架构指令模式之间的匹配，其优势在于无需人工干预即可适配大部分通用指令的匹配需求，提升编译器对指令集扩展的自适应能力。这种设计不仅显著减少了手写匹配代码的工作量，也提升了编译器在面对指令集扩展或新增指令时的可维护性与可扩展性。
+
+\par
+
+自动匹配模块的工作流程可进一步划分为两个阶段：
+第一阶段发生在编译器构建期，由TableGen工具解析目标架构指令的树模式描述，并将其编码为确定性有限状态机；第二阶段发生在编译期，指令选择器利用已生成的状态机，对单条GMIR指令构建的抽象语法树进行自底向上的遍历，通过状态转移自动判定其可匹配的目标指令模式。
+
+\par
+
+为兼容SelectionDAGISel，GlobalISel对通用算术与逻辑指令直接复用既有指令模式，而对依赖SDNode的架构专属信息则重新建模，并通过GINodeEquiv显式建立GMIR操作码与ISD操作码的等价关系，实现指令模式的复用。以下示例展示了加法指令的映射。
+
+\lstset{language=c++}
+\begin{lstlisting}
+Class GINodeEquiv<Instruction i, SDNode node> {
+	Instruction I = i;
+	SDNode Node = node;
+}
+
+def : GINodeEquiv<G_ADD, add>;
+\end{lstlisting}
+
+2.手动匹配模块
+
+尽管自动匹配模块能够覆盖大多数通用指令的选择需求，但在实际工程中仍存在部分目标架构特有的复杂指令，其语义或操作数约束难以通过TableGen的树模式进行完整描述。针对这类场景，需要通过自定义C++代码实现精细化的指令匹配逻辑。
+
+\par
+
+手动匹配模块通常以内置固定树模式或显式条件判断的形式存在，通过逐条检查GMIR指令的操作码、操作数类型及寄存器约束，判定其是否符合特定架构专属指令的语义特征。一旦匹配成功，即直接生成对应的目标指令。该模块作为自动匹配的补充机制，主要用于处理高度架构相关、对性能或硬件语义要求严格的指令场景，弥补纯表驱动匹配在表达能力上的不足。
+
+3.指令生成模块
+
+指令生成模块位于机器指令选择流程的末端，其输入为自动匹配或手动匹配阶段选定的指令树模式。该模块依据模式与目标架构指令之间的映射关系，构造语义等价的MIR指令序列，并完成必要的操作数绑定与属性设置。通过该模块，GMIR中的通用指令被最终转换为与目标架构紧密绑定、可直接参与后续寄存器分配与指令调度的机器指令表示。
+
+
+% 2.5.2 机器指令选择的实现
+\subsection{机器指令选择的实现}
+
+机器指令选择阶段以单条GMIR指令为处理粒度，其整体流程可概括为预处理、特殊指令处理、合法性校验、自动匹配以及手动匹配五个阶段，如算法\ref{alg:isel-core}所示。
+
+1.预处理
+
+为适配DSP目标架构的指令语义，指令选择前需对部分通用指令执行前置Lowering，将其规范化为更贴近硬件的等价形式。典型场景是指针相关操作：由于DSP架构缺少独立的指针运算指令，指针通常以整型寄存器保存并参与运算，因此需要将带指针语义的通用指令转换为等价的整型语义指令，并同步修正结果寄存器的LLT，保证后续匹配与约束的一致性。
+
+2.特殊指令处理
+
+对于语义或结构特殊、难以通过树模式描述的指令，需要在自动匹配之前进行单独处理，主要包括以下几类。
+
+\begin{itemize}
+	\item
+	PHI指令用于描述控制流汇合处的SSA值合并，属于编译器内部语义，不对应具体硬件指令，其处理重点在于保证定义寄存器与各输入操作数满足一致的寄存器约束，以确保后续寄存器分配的合法性。
+
+	\item
+	COPY指令仅承担数据搬运语义，不包含可匹配的运算结构，且可能涉及虚拟寄存器与物理寄存器之间或跨寄存器资源的数据复制，通常无法通过通用树模式完成映射，因此需要采用专门的选择逻辑。
+
+	\item 
+	此外，由于DSP架构的ISA限制，对于依赖控制寄存器Condition位的指令，如G\_BRCOND、G\_ICMP、G\_FCMP以及G\_SELECT等，需在TableGen驱动的通用匹配流程之前进行提前处理。通过在指令选择阶段直接识别并生成符合目标架构条件码语义的指令序列，可以避免条件值经由普通数据路径再映射至控制寄存器所带来的冗余指令与数据搬移开销。
+	
+\end{itemize}
+
+3.合法性校验
+在进入模式匹配前，对指令结构进行必要的合法性检查。例如，通用指令不应携带未显式声明的隐式操作数；若指令形态异常，直接返回失败以避免产生不一致的选择结果，并便于定位后端实现问题。
+
+4.自动匹配
+对通过前述阶段筛选的通用指令，调用selectImpl执行基于TableGen的树覆盖匹配。该路径覆盖面广、维护成本低，能够将绝大多数通用算术、逻辑、访存等指令自动映射为目标指令模式，是指令选择的主要实现方式。
+
+5.手动匹配
+当指令无法被自动匹配覆盖时采用手动匹配。手动匹配通常以专用选择函数的形式存在，对操作数、立即数约束及目标指令序列进行精确构造。例如，针对寄存器内符号扩展的 G\_SEXT\_INREG，可通过检查扩展位宽并构造等价的目标指令序列完成选择，同时对新生成指令施加寄存器约束，保证与后续流程兼容。
+
+\par
+
+手动匹配在处理指令集差异时尤为关键。以UMULH（无符号高半乘法）为例：对于原生支持该指令的芯片型号，可以直接通过TableGen的Pattern将GMIR操作映射为硬件指令；而对于不支持UMULH的型号，则需要在手动路径中将其展开为等价指令序列。
+
+\par
+
+这种设计使得条件值的生成、传递与使用能够保持在最小且明确的指令路径上，不仅简化了指令选择过程，降低了指令序列中冗余复制操作的数量，还减少了寄存器压力和执行延迟，对分支频繁、条件判断密集的程序尤为有利，有助于提升最终生成代码的整体执行效率。
+
+\begin{algorithm}[htbp]
+	\SetAlgoLined
+	\linespread{1}\selectfont
+	
+	\KwIn{MI: Machine Instruction}
+	\KwOut{Boolean: Instruction selection result}
+	\caption{Core Logic of Instruction Selector}
+	\label{alg:isel-core}
+	Initialize context objects for MI (MBB, MF, MRI, MIB)\;
+	Execute pre-selection lowering on MI\;
+	
+	\If{MI is a copy instruction}{
+		\Return Process copy instruction selection for MI\;
+	}
+	Get opcode (Opc) of MI\;
+	
+	\If{Opc is G\_PHI}{
+		Extract target register (DefReg) of PHI\;
+		Derive target register class (DefRC) of DefReg\;
+		\If{DefRC derivation fails}{
+			\Return false\;
+		}
+		\For{each operand in PHI instruction}{
+			\If{Operand cannot be constrained to DefRC}{
+				\Return false\;
+			}
+		}
+		Update PHI instruction descriptor\;
+		\Return Constrain DefReg to DefRC\;
+	}
+	
+	\If{MI has implicit operands not declared explicitly}{
+		\Return false\;
+	}
+	
+	\If{Opc is a condition-related generic instruction}{
+		\Return Apply condition-specific selection\;
+	}
+	\If{table-driven selectImpl succeeds}{\Return true\;}
+	
+	\If{Opc is a special-type generic instruction}{
+		\Return Apply special-type instruction selection\;
+	}
+	\Return false\;
+\end{algorithm}
