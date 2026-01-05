@@ -278,24 +278,20 @@
 	\tableofcontents
 	
 	\begin{abstract}
-		随着DSP架构复杂度的不断提升，编译器后端在指令选择阶段面临着更高的性能与工程化要求。GlobalISel作为新一代指令选择框架，相较于传统基于DAG的指令选择机制，在可扩展性和编译效率方面具有潜在优势，但其在DSP架构下的落地实现与优化仍面临诸多挑战。
+		随着DSP架构复杂度的不断提高，编译器后端在指令选择阶段面临着更高的性能与工程化要求。GlobalISel作为新一代指令选择框架，相较于传统基于DAG的指令选择机制，无论是在可扩展性上还是在编译效率上都具有优势，为此本文针对DSP架构的硬件及指令集特性，设计并实现了基于GlobalISel的指令选择优化方案。
 		
-		本文围绕DSP架构下基于LLVM的GlobalISel的实现与优化问题展开研究。首先，对GlobalISel的整体框架及其关键阶段进行分析，结合DSP架构特性，完成了GMIR生成、指令合法化、寄存器组选择和机器指令选择等核心流程在DSP后端中的实现，并验证了其功能正确性。其次，针对GlobalISel在不同阶段产生的冗余与性能问题，提出并实现了多项指令选择优化策略，包括内存操作指令优化、常量乘法强度削弱以及冗余指令合并等，以提升生成代码的质量和执行效率。
+		在GlobalISel的实现中，对GlobalISel的整体框架及其关键阶段进行分析，结合DSP架构特性，完成了GMIR生成、指令合法化、寄存器组选择和机器指令选择等核心流程在DSP后端中的实现，并验证了其功能正确性。
 		
-		在测试与评估方面，本文设计并实现了一套面向DSP编译器的测试评估平台。该平台基于随机测试生成技术，对YARPGen进行DSP架构定制化扩展，构建了覆盖指令选择和后端优化场景的随机测试输入体系；同时，平台支持性能数据的自动采集、跨版本对比分析以及可视化展示，为编译器优化效果评估和回归分析提供了系统化支持。
+		针对GlobalISel在不同阶段产生的冗余与性能问题，本文提出并实现了多种指令选择优化策略，其中包括内存操作指令优化、常量乘法强度削弱优化以及冗余指令合并优化等，用于提升生成代码的质量和执行效率。
 		
-		实验结果表明，在测试集上，相较于传统指令选择方案，GlobalISel在编译时间方面表现出一定优势；结合本文提出的优化策略后，在代码大小和执行周期等指标上亦取得了稳定改进。研究结果验证了GlobalISel在DSP架构下的可行性与工程价值，为后续在嵌入式和专用处理器平台上推广GlobalISel提供了实践参考。
+		为了解决现有测试体系存在的问题，本文设计并实现了一套面向DSP编译器的测试评估平台。平台引入了随机测试生成技术，通过对YARPGen进行针对DSP架构的定制化扩展，来构建一套覆盖指令选择及后端优化场景的随机测试输入体系。同时，平台支持性能数据的自动采集、跨版本对比分析以及可视化展示等功能，为编译器优化效果评估和分析提供了支持。
+		
+		实验结果表明，GlobalISel相较于传统指令选择方案而言，在编译时间上具有一定的优势。在添加了针对DSP架构的优化之后，在代码大小和执行周期等指标上均取得了进步，这也反映了GlobalISel在DSP架构下的优化潜力。
 		
 	\end{abstract}
 	
 	\begin{abstract*}
-		With the increasing complexity of embedded Digital Signal Processor (DSP) architectures, the instruction selection stage in compiler backends faces higher demands in terms of performance and engineering scalability. LLVM GlobalISel, as a next-generation instruction selection framework, offers potential advantages over traditional DAG-based approaches in extensibility and compilation efficiency. However, its practical adoption and optimization on DSP architectures still present significant challenges.
-		
-		This thesis focuses on the implementation and optimization of LLVM GlobalISel for DSP architectures. First, the overall architecture and key stages of GlobalISel are analyzed. By incorporating DSP-specific characteristics, the core backend components—including GMIR generation, instruction legalization, register bank selection, and machine instruction selection—are implemented and validated for functional correctness. Then, several instruction selection optimizations are proposed and implemented to address redundancy and performance issues at different stages, including memory operation optimizations, constant multiplication strength reduction, and redundant instruction elimination, aiming to improve code quality and execution efficiency.
-		
-		To support systematic evaluation, a testing and performance analysis platform for DSP compilers is designed and implemented. The platform leverages random testing techniques and extends YARPGen with DSP-specific customizations to generate high-coverage test programs targeting instruction selection and backend optimizations. It further provides automated performance data collection, cross-version comparison, and visualization capabilities, enabling effective performance evaluation and regression analysis.
-		
-		Experimental results on the Embench benchmark suite show that GlobalISel achieves competitive compilation time compared with traditional instruction selection approaches. With the proposed optimizations applied, GlobalISel also demonstrates consistent improvements in code size and execution cycles. These results confirm the feasibility and engineering value of GlobalISel on DSP architectures and provide practical insights for its adoption on embedded and domain-specific processor platforms.
+
 	\end{abstract*}
 	
 	% 主体部分是论文的核心
