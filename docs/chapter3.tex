@@ -43,21 +43,26 @@ GlobalISel与SelectionDAGISel的代码质量差距，本质上源于两者设计
 \subsection{关键优化技术分析}
 1.公共子表达式消除
 
-公共子表达式消除是一种经典的编译优化技术，其核心思想是消除程序中重复计算相同表达式的冗余操作，避免冗余的运算操作与寄存器占用，从而精简代码体积、降低执行延迟。在指令选择阶段，如果一个表达式的值已经被计算过，并且其操作数未被重新定义，则可以复用之前的计算结果，避免重复计算，从而减少冗余指令的生成。对于下例，在优化前b+c被计算了3次，优化后只需要计算1次。
+公共子表达式消除是一种经典的编译优化技术，其核心思想是消除程序中重复计算相同表达式的冗余操作，避免冗余的运算操作与寄存器占用，从而精简代码体积、降低执行延迟。在指令选择阶段，如果一个表达式的值已经被计算过，并且其操作数未被重新定义，则可以复用之前的计算结果，避免重复计算，从而减少冗余指令的生成。如下表\ref{tab:cse-example}所示，该样例在优化前b+c被计算了3次，优化后只需要计算1次。
+
+\noindent
+\setlength{\tabcolsep}{0pt}
+\renewcommand{\arraystretch}{1.0}
 
 \begin{table}[htbp]
 	\centering
-	\caption{公共子表达式消除示例}
+	\caption{公共子表达式消除优化前后代码示例}
 	\label{tab:cse-example}
 	\renewcommand{\arraystretch}{1.0}
-	\begin{tabular}{|p{0.45\linewidth}|p{0.45\linewidth}|}
+	\lstset{
+		basicstyle=\ttfamily\footnotesize,
+		frame=none,
+		numbers=none
+	}
+	\begin{tabular}{|p{0.48\linewidth}|p{0.48\linewidth}|}
 		\hline
 		\begin{minipage}[t]{\linewidth}
-			\lstset{
-				basicstyle=\ttfamily\footnotesize,
-				frame=none,
-				numbers=none
-			}
+
 			\begin{lstlisting}
 				// 优化前
 				a = b + c;
@@ -68,11 +73,6 @@ GlobalISel与SelectionDAGISel的代码质量差距，本质上源于两者设计
 		\end{minipage}
 		&
 		\begin{minipage}[t]{\linewidth}
-			\lstset{
-				basicstyle=\ttfamily\footnotesize,
-				frame=none,
-				numbers=none
-			}
 			\begin{lstlisting}
 				// 优化后
 				temp = b + c;
@@ -351,15 +351,51 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 
 在通用指令生成与合法化前的阶段，编译器常会引入形如截断+比较的冗余指令序列。这类模式通常表现为：先对一个宽位宽寄存器执行截断操作（G\_TRUNC），再将截断结果与零进行比较（G\_ICMP）。该现象多源于高层IR中的类型收缩、布尔表达式转换以及通用化指令拆分策略。
 
-
-
-
 从语义角度分析，若被截断寄存器的高位仅由符号扩展产生，则这些高位在逻辑上并不携带有效信息。在这种情况下，对截断结果进行零比较，与直接对原始宽位宽值进行零比较在语义上是等价的。基于这一观察，本文在合法化前引入了针对冗余截断+比较模式的合并优化。
 
-该优化首先利用KnownBits分析对被截断操作数进行位级信息推断，判断其高位是否完全由符号位扩展而来；若满足该条件，则说明截断操作并不会改变数值的符号与零值判定结果。此时，优化过程将原本以截断结果为操作数的比较指令，直接重写为对宽位宽操作数与零进行比较，同时移除多余的G\_TRUNC指令。
+该优化首先利用KnownBits分析对被截断操作数进行位级信息推断，判断其高位是否完全由符号位扩展而来；若满足该条件，则说明截断操作并不会改变数值的符号与零值判定结果。此时，优化过程将原本以截断结果为操作数的比较指令，直接重写为对宽位宽操作数与零进行比较，同时移除多余的G\_TRUNC指令。一个典型的示例如表\ref{tab:trunc-icmp-opt}所示。
+
+\noindent
+\setlength{\tabcolsep}{0pt}
+\renewcommand{\arraystretch}{1.0}
+
+\begin{table}[htbp]
+	\centering
+	\caption{冗余截断与比较指令优化前后示例}
+	\label{tab:trunc-icmp-opt}
+	\renewcommand{\arraystretch}{1.0}
+	\lstset{
+		basicstyle=\ttfamily\footnotesize,
+		frame=none,
+		numbers=none
+	}
+	\begin{tabular}{|p{0.48\linewidth}|p{0.48\linewidth}|}
+		\hline
+		\begin{minipage}[t]{\linewidth}
+			
+			\begin{lstlisting}
+				// 优化前
+				%0:_(s64) = COPY $d0
+				%1:_(s32) = G_CONSTANT i32 0
+				%2:_(s32) = G_TRUNC %0:_
+				%3:_(s1)  = G_ICMP slt, %1:_, %2:_
+			\end{lstlisting}
+		\end{minipage}
+		&
+		\begin{minipage}[t]{\linewidth}
+			\begin{lstlisting}
+				// 优化后	
+				%0:_(s64) = COPY $d0
+				%1:_(s32) = G_CONSTANT i32 0
+				%3:_(s1)  = G_ICMP slt, %0:_, %1:_
+			\end{lstlisting}
+		\end{minipage}
+		\\
+		\hline
+	\end{tabular}
+\end{table}
 
 通过这一变换，不仅可以减少一条通用中间指令和对应的虚拟寄存器定义，还能显著简化数据流依赖关系，使比较操作更贴近硬件语义。在DSP架构下，该优化有助于后续指令选择阶段更直接地匹配硬件比较指令与条件跳转指令，从而提升代码密度并降低执行延迟。
-
 
 2.立即数装载优化
 
@@ -378,7 +414,8 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 	\end{itemize}
 	
 	\item
-	可用16位有符号立即数表示的常量：利用MOVIGLX指令可以实现将一个16位的有符号立即数进行符号位扩展至32bit后复制到rd中。于是当常量满足Imm∈[-2\^15, 2\^15-1]时，可将imm16符号扩展到32位写入Rd。
+	可用16位有符号立即数表示的常量：利用MOVIGLX指令可以实现将一个16位的有符号立即数进行符号位扩展至32bit后复制到rd中。于是当常量满足Imm∈\([-2^{15},\, 2^{15}-1]\)
+	 时，可将imm16符号扩展到32位写入Rd。
 	
 	\item 
 	其他情况：使用PseudoMOVI伪指令实现，伪指令会在后续阶段展开为MOVIGH+MOVIGL两条机器指令。其中MOVIGH装载立即数的高16位到寄存器高半区，而MOVIGL装载立即数的低16位到寄存器低半区。
@@ -386,6 +423,9 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 \end{itemize}
 
 
-
+%*********************************************************************
+% 3.3 本章小结
+%*********************************************************************
+\section{本章小结}
 
 
