@@ -1,10 +1,10 @@
-\chapter{全局指令选择优化策略}
+\chapter{面向DSP的全局指令选择优化}
 
 
 %*********************************************************************
-% 3.1 优化策略的分析与设计
+% 3.1 优化策略分析与设计
 %*********************************************************************
-\section{优化策略的分析与设计}
+\section{优化策略分析与设计}
 在经过GMIR生成、指令合法化、寄存器组选择以及机器指令选择4个核心Pass处理之后，原始的LLVM IR已经成功被转换成MIR。尽管这一流程已实现指令选择阶段的目标，但是生成的代码质量相比于SelectionDAGISel较差。代码质量的差距主要体现在指令数量冗余、硬件专用指令利用率低以及寄存器资源分配不够高效等方面。
 
 \par
@@ -12,8 +12,8 @@
 为了缩小与SelectionDAGISel在代码质量上的差距，本文引入了包括CSE（Common Subexpression Elimination, 公共子表达式消除）、已知比特分析（KnownBits Analysis）以及合并优化（Combiner）等多项优化技术。这些优化策略通过降低指令冗余、精确推断操作数的已知状态并简化表达式，从而显著提升了生成代码的性能。
 
 
-% 3.1.1 优化的理论依据
-\subsection{优化的理论依据}
+% 3.1.1 优化策略理论依据
+\subsection{优化策略理论依据}
 程序在编译过程中，尤其是在从高级的LLVM IR向低级的目标相关指令转换时，会不可避免地引入大量的冗余。这些冗余体现为计算冗余（公共子表达式重复计算）、数据冗余（多余的拷贝指令）和表示冗余（复杂的指令序列可用更高效的指令替代）。优化的根本任务就是系统性地识别并消除这些冗余，在保证程序语义不变的前提下，提高生成代码的执行效率、代码密度及硬件利用率。
 
 \par
@@ -143,8 +143,8 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 在所有这些优化中，合并优化承担着将优化机会最终转化为性能收益的核心职责。其主要目标是通过删除冗余指令、简化表达式、合并常见的操作模式来减少代码规模，并提高执行效率。例如，它将两个连续的零扩展指令G\_ZEXT(G\_ZEXT(x))合并为单一的G\_ZEXT(x)，或者将独立的乘法（G\_MUL）和加法（G\_ADD）指令融合为一条高效的乘加（MAC）指令。正是通过这种深度的指令融合，才能充分利用目标架构的复杂指令，减少不必要的操作和存储器访问。
 
 
-% 3.1.3 基于DSP的优化设计
-\subsection{基于DSP的优化设计}
+% 3.1.3 面向DSP的优化设计
+\subsection{面向DSP的优化设计}
 单一的优化策略通常难以应对复杂的代码生成需求，因此需要一个多策略协同的优化体系。本章将深入分析以合并优化为核心，并辅以公共子表达式消除、合法化策略以及窥孔优化等多种策略的全局指令选择优化方法。由于公共子表达式消除属于通用优化且已经在框架中实现，只需要调用相应的接口即可，下文主要针对合并优化。
 
 \par
@@ -173,9 +173,9 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 
 
 %*********************************************************************
-% 3.2 优化策略的实现
+% 3.2 优化策略实现
 %*********************************************************************
-\section{优化策略的实现}
+\section{优化策略实现}
 
 基于前文对GlobalISel指令选择流程的分析可以发现，其冗余与低效并非集中于单一阶段，而是呈现出明显的阶段性特征：
 
@@ -238,18 +238,57 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 基于上述两级优化体系的划分，本文在DSP后端中实现的具体优化策略可按照其生效阶段进行归类：其中面向通用GMIR结构、以消除语义拆分冗余和规范化表达式形态为目标的优化，统一放置于Pre-Legalize Combiner阶段；而依赖于合法化后稳定类型与操作数形态、以目标相关指令匹配和代码质量提升为目标的优化，则在Post-Legalize Combiner段实施。下文将结合具体优化实例，对上述两类优化策略的实现方式进行详细说明。
 
 
-% 3.2.1 内存操作指令的优化
-\subsection{内存操作指令的优化}
+% 3.2.1 内存操作优化
+\subsection{内存操作优化}
 作为Pre-Legalize Combiner阶段的典型优化之一，内存操作指令的优化主要针对通用GMIR中高层内存操作所引入的函数调用冗余问题。在GlobalISel默认实现中，如G\_MEMCPY、G\_MEMMOVE等高层内存操作指令通常会被直接降级为库函数调用。然而，对于小规模内存操作而言，函数调用所引入的额外开销往往远大于实际的内存访问成本，从而导致显著的性能浪费。为此，本文在合法化之前引入针对高层内存操作的合并优化策略：主动将小规模内存拷贝操作转换为显式的load/store指令序列，以避免不必要的函数调用。
 
 在DSP后端的Pre-Legalize Combiner中，针对内存操作指令的处理逻辑如下：
-\lstset{language=c++}
-\begin{lstlisting}
 
-\end{lstlisting}
+\begin{algorithm}[H]
+	\caption{lowerMemCpyFamily}
+	\KwIn{MachineInstr $MI$, unsigned $MaxLen$}
+	\KwOut{LegalizeResult}
+	
+	$Opc \leftarrow$ opcode of $MI$\;
+	\If{$Opc \notin \{G\_MEMCPY, G\_MEMMOVE, G\_MEMSET\}$}{
+		\Return UnableToLegalize\;
+	}
+	
+	extract $Dst$, $Src$, $Len$ and memory operands from $MI$\;
+	obtain $DstAlign$, $SrcAlign$ (if applicable)\;
+	
+	\If{$Len$ is not constant}{
+		\Return UnableToLegalize\;
+	}
+	\If{$Len = 0$}{
+		erase $MI$; \Return Legalized\;
+	}
+	
+	$IsVolatile \leftarrow$ volatility flag\;
+	\If{$Opc = G\_MEMCPY\_INLINE$}{
+		\Return lowerMemcpyInline(...)\;
+	}
+	\If{$IsVolatile$ \textbf{or} ($MaxLen>0$ \textbf{and} $Len>MaxLen$)}{
+		\Return UnableToLegalize\;
+	}
+	
+	\If{$Opc = G\_MEMCPY$}{
+		compute store limit from target lowering\;
+		\Return lowerMemcpy(...)\;
+	}
+	\If{$Opc = G\_MEMMOVE$}{
+		\Return lowerMemmove(...)\;
+	}
+	\If{$Opc = G\_MEMSET$}{
+		\Return lowerMemset(...)\;
+	}
+	
+	\Return UnableToLegalize\;
+\end{algorithm}
 
-% 3.2.2 乘法指令的优化
-\subsection{乘法指令的优化}
+
+% 3.2.2 乘法优化
+\subsection{乘法优化}
 乘法指令优化属于Post-Legalize Combiner阶段的目标相关优化，其实现依赖于合法化后操作数位宽和指令形式的稳定性。对于乘数为编译期常量的整数乘法，直接生成乘法指令在部分架构上往往不是最优选择：一方面，整数乘法的硬件实现通常具有较高的延迟和功耗；另一方面，许多常量乘法在算术上可以等价地分解为移位与加减操作，从而以更低的执行成本完成相同计算。基于这一考虑，本文在合法化后阶段对G\_MUL指令引入常量乘法强度削减优化。当乘数为满足特定形式的编译期常量时，编译器将乘法操作替换为由移位（G\_SHL）与加法（G\_ADD）或减法（G\_SUB）组成的等价指令序列。
 
 1.理论基础
@@ -343,8 +382,8 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 在重写阶段，编译器根据匹配到的常量形式，生成对应的移位与加减指令序列，并替换原有的G\_MUL指令。
 
 
-% 3.2.3 其他指令的优化
-\subsection{其他指令的优化}
+% 3.2.3 拓展截断优化
+\subsection{拓展截断优化}
 除上述典型优化外，DSP后端中还实现了一些针对特定冗余模式和代码生成细节的补充优化。其中，部分优化在Pre-Legalize阶段生效，用于简化通用指令结构；另一部分则依赖于目标指令特性，在Post-Legalize阶段完成。
 
 1.冗余截断与比较指令优化
@@ -397,8 +436,63 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 
 通过这一变换，不仅可以减少一条通用中间指令和对应的虚拟寄存器定义，还能显著简化数据流依赖关系，使比较操作更贴近硬件语义。在DSP架构下，该优化有助于后续指令选择阶段更直接地匹配硬件比较指令与条件跳转指令，从而提升代码密度并降低执行延迟。
 
-2.立即数装载优化
+2.拓展下推优化
 
+在GMIR中，算术指令往往作用于经过符号扩展G\_SEXT或零扩展G\_ZEXT后的操作数。这种形式虽然在语义上是正确的，但在实际工程中会引入多余的扩展指令，导致指令数量的增加及后续目标指令匹配与融合的成功率的降低。为此，本文引入一种EPO（Extension Pushing Optimization，扩展下推优化），优化通过重写算术运算与扩展指令的组合形式，将算术操作下推至扩展之前，从而获得更加规范、紧凑的中间表示。
+
+\par
+
+考虑如下典型模式：
+
+\[
+\operatorname{add}(\operatorname{zext}\, x,\ \operatorname{zext}\, y)
+\]
+
+该形式在GMIR中表现为两个扩展指令后接一条算术指令。由于DSP指令集中包含带扩展的算术指令，允许在较小位宽上直接完成算术运算，再对结果进行一次统一扩展。因此，将算术操作推到扩展之前能够减少冗余的扩展指令数量，降低指令条数。除此之外，还能形成更规范的IR结构，提升指令选择阶段的模式匹配成功率。
+
+\par
+
+该优化针对ADD和SUB指令，适用于零扩展与符号扩展两种情形，其核心重写规则可概括为：
+
+\[
+\operatorname{op}\bigl(\operatorname{ext}\, x,\ \operatorname{ext}\, y\bigr)
+\;\Rightarrow\;
+\operatorname{ext}\!\bigl(\operatorname{op}(x, y)\bigr)
+\]
+
+其中，op表示算术操作ADD或SUB，ext表示扩展操作ZEXT或SEXT。需要注意的是，变换过程中必须保证扩展类型的一致性，并在符号扩展场景下正确维护符号语义。在Combiner中，该优化通过参数化的TableGen规则进行描述。其核心定义如下：
+
+\begin{lstlisting}[language=C++, caption={EPO的TableGen规则}, label={lst:epo_tb}]
+	class epo_base<Instruction opcode, Instruction extOpcode>
+	: GICombineRule <
+	(defs root:$root),
+	(match (extOpcode $ext1, $src1):$ExtMI,
+	(extOpcode $ext2, $src2),
+	(opcode $dst, $ext1, $ext2):$root,
+	[{ return matchEPO(*${root}, MRI, $dst, $src1, $src2); }]),
+	(apply [{
+		applyEPO(*${root}, MRI, B,
+		${ExtMI}->getOpcode() == TargetOpcode::G_SEXT, $dst, $src1, $src2);
+	}])
+	>;
+\end{lstlisting}
+
+该规则通过模板参数抽象了算术操作类型ADD/SUB以及扩展类型ZEXT/SEXT，从而避免重复定义多条相似规则。在匹配阶段，规则要求两个操作数均来源于相同类型的扩展指令，并由指定的算术指令使用；在应用阶段，根据扩展类型生成新的算术指令，并在必要时重新插入对应的扩展操作。该优化在语义上是安全的，其正确性基于如下事实：
+
+\begin{itemize}
+	\item 对于零扩展ZEXT，扩展前后的值在无符号算术意义下保持一致.
+	
+	\item 对于符号扩展SEXT，在保证算术运算不发生未定义行为的前提下，先运算后扩展与先扩展后运算在数学语义上等价.
+	
+	\item 优化过程中不改变数据依赖关系，仅调整指令组合方式。
+	
+\end{itemize}
+
+EPO属于一种IR规范化优化，其主要作用并非直接降低执行时间，而是为后续目标相关优化与指令选择提供更优的输入形式。在DSP架构上，该优化提升了复合指令匹配的成功率，并间接减少了最终生成代码中的指令数量。
+
+
+% 3.2.4 立即数装载优化
+\subsection{立即数装载优化}
 在指令选择阶段，G\_CONSTANT/G\_FCONSTANT等通用指令需要被转化为目标指令集可执行的装载立即数序列。如果不加区分地统一使用通用长立即数装载指令MOVI，会导致指令条数增加。因此，本文根据DSP平台的ISA来定制化立即数序列的装载函数，采用按常量位型分类的策略：优先长度匹配更短、开销更少的装载形式，从而降低代码尺寸与执行开销。可以将32位立即数分为几种情况:
 
 \begin{itemize}
@@ -421,6 +515,7 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 	其他情况：使用PseudoMOVI伪指令实现，伪指令会在后续阶段展开为MOVIGH+MOVIGL两条机器指令。其中MOVIGH装载立即数的高16位到寄存器高半区，而MOVIGL装载立即数的低16位到寄存器低半区。
 	
 \end{itemize}
+
 
 
 %*********************************************************************
