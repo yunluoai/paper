@@ -1,4 +1,4 @@
-\chapter{面向DSP的全局指令选择优化}
+\chapter{面向DSP的全局指令选择优化策略}
 
 
 %*********************************************************************
@@ -41,51 +41,34 @@ GlobalISel与SelectionDAGISel的代码质量差距，本质上源于两者设计
 
 % 3.1.2 关键优化技术分析
 \subsection{关键优化技术分析}
-1.公共子表达式消除
 
-公共子表达式消除是一种经典的编译优化技术，其核心思想是消除程序中重复计算相同表达式的冗余操作，避免冗余的运算操作与寄存器占用，从而精简代码体积、降低执行延迟。在指令选择阶段，如果一个表达式的值已经被计算过，并且其操作数未被重新定义，则可以复用之前的计算结果，避免重复计算，从而减少冗余指令的生成。如下表\ref{tab:cse-example}所示，该样例在优化前b+c被计算了3次，优化后只需要计算1次。
 
-\noindent
-\setlength{\tabcolsep}{0pt}
-\renewcommand{\arraystretch}{1.0}
+\subsubsection{1.公共子表达式消除}
+公共子表达式消除是一种经典的编译优化技术，其核心思想是消除程序中重复计算相同表达式的冗余操作，避免冗余的运算操作与寄存器占用，从而精简代码体积、降低执行延迟。在指令选择阶段，如果一个表达式的值已经被计算过，并且其操作数未被重新定义，则可以复用之前的计算结果，避免重复计算，从而减少冗余指令的生成。如下代码块\ref{lst:cse_before}和代码块\ref{lst:cse_after}所示，该样例在优化前b+c被计算了3次，优化后只需要计算1次。
 
-\begin{table}[htbp]
+\begin{figure}[htbp]
 	\centering
-	\caption{公共子表达式消除优化前后代码示例}
-	\label{tab:cse-example}
-	\renewcommand{\arraystretch}{1.0}
-	\lstset{
-		basicstyle=\ttfamily\footnotesize,
-		frame=none,
-		numbers=none
-	}
-	\begin{tabular}{|p{0.48\linewidth}|p{0.48\linewidth}|}
-		\hline
-		\begin{minipage}[t]{\linewidth}
+	\begin{minipage}[t]{0.48\linewidth}
+		\captionsetup{type=lstlisting}
+		\begin{lstlisting}[language=C++, caption={CSE优化前}, label={lst:cse_before}]
+	a = b + c;
+	d = b + c;
+	e = b + c * 2;
+	f = (b + c) * 3;
 
-			\begin{lstlisting}
-				// 优化前
-				a = b + c;
-				d = b + c;
-				e = b + c * 2;
-				f = (b + c) * 3;
-			\end{lstlisting}
-		\end{minipage}
-		&
-		\begin{minipage}[t]{\linewidth}
-			\begin{lstlisting}
-				// 优化后
-				temp = b + c;
-				a = temp;
-				d = temp;
-				e = b + c * 2;
-				f = temp * 3;
-			\end{lstlisting}
-		\end{minipage}
-		\\
-		\hline
-	\end{tabular}
-\end{table}
+		\end{lstlisting}
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.48\linewidth}
+		\captionsetup{type=lstlisting}
+		\begin{lstlisting}[language=C++, caption={CSE优化后}, label={lst:cse_after}]
+	temp = b + c;
+	a = temp;
+	d = temp;
+	e = b + c * 2;
+	f = temp * 3;
+		\end{lstlisting}
+	\end{minipage}
+\end{figure}
 
 与传统的CSE不同，GlobalISel采用了持续CSE（Continuous CSE）策略。这种策略通过在指令创建时即时检查是否存在等价的表达式，从而消除不必要的冗余计算。持续CSE能够在基本块内高效工作，避免了全函数扫描的代价高昂性。这种局部的优化策略能够大幅提升编译效率，同时保持优化效果。
 
@@ -93,8 +76,8 @@ GlobalISel与SelectionDAGISel的代码质量差距，本质上源于两者设计
 
 CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而且还能减少寄存器的使用。在指令合并优化阶段，复用公共子表达式的计算结果往往能够暴露出更复杂的合并模式。例如，如果两个计算共享相同的子表达式，合并优化可能通过识别这些冗余的计算来进一步简化指令序列，提升代码执行效率。
 
-2.已知比特分析
 
+\subsubsection{2.已知比特分析}
 已知比特分析是一种静态推断寄存器各位已知状态的技术，主要用于优化常量传播和指令简化，通过跟踪每个位的已知状态来帮助优化器做决策。核心目标是在不引入额外运行时开销的前提下，尽可能提前获取寄存器值的精确信息，从而辅助常量传播、指令简化以及后续的合并优化决策。该分析通过对寄存器中必然为0或必然为1的比特位进行建模，为优化器提供细粒度的位级语义信息。
 
 \par
@@ -118,8 +101,8 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 
 通过上述分析结果，编译器能够准确获知变量b的高16位始终为0，而变量c的第17位必然为1。这类信息在后续优化阶段具有重要价值：一方面可用于消除冗余的掩码、扩展或比较指令；另一方面也为指令合并与目标指令匹配提供更精确的语义依据，从而生成更紧凑、高效的机器代码。
 
-3.合并优化
 
+\subsubsection{3.合并优化}
 在GlobalISel框架中，合并优化是提升代码质量的核心手段之一。合并优化的主要目标是通过删除冗余的指令、简化表达式、合并常见的操作模式来减少代码的规模，并提高执行效率。它能充分利用目标架构的复杂指令，减少不必要的操作和存储器访问。
 
 \par
@@ -173,31 +156,9 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 
 
 %*********************************************************************
-% 3.2 优化策略实现
+% 3.2 合法化前优化策略
 %*********************************************************************
-\section{优化策略实现}
-
-基于前文对GlobalISel指令选择流程的分析可以发现，其冗余与低效并非集中于单一阶段，而是呈现出明显的阶段性特征：
-
-\begin{itemize}
-	\item
-	在IRTranslator/Legalizer阶段，容易由于语义拆分与类型通用化引入冗余中间指令。
-	
-	\item
-	在RegBankSelect阶段，可能产生跨寄存器组的数据拷贝。
-	
-	\item 
-	在InstructionSelect阶段，则容易出现目标架构专用指令漏匹配的问题。
-	
-\end{itemize}
-
-因此，单一位置的优化难以覆盖全部问题，本文将DSP后端的GlobalISel优化体系划分为合法化前（Pre-Legalize）与合法化后（Post-Legalize）两个层级，分别针对不同阶段的冗余特征实施有侧重的合并与重写策略。
-
-\begin{enumerate}
-	
-	\item
-	Pre-Legalize Combiner
-
+\section{合法化前优化策略}
 合法化之前，GMIR仍处于高度通用的表示阶段，指令尚未被约束为DSP架构所支持的具体形式。该阶段的优化不涉及目标指令集的具体限制，重点在于语义层面的简化与结构性重写，以减少冗余并规范表达式形态，为后续Legalizer与Instruction Selector提供更加稳定的匹配条件，同时保留足够的优化自由度，主要包括以下几类：
 
 \begin{itemize}
@@ -214,33 +175,12 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 
 由于此阶段允许暂时存在非法指令，优化变换不必立即满足目标指令集的约束，从而具备更大的自由度，能够在保持语义不变的前提下，对指令结构进行深度重构。
 
-	\item
-	Post-Legalize Combiner
-
-合法化之后，所有GMIR指令均已被转换为目标架构支持的合法形式，指令的类型、操作数位宽及内存访问方式均受到严格约束。此时优化的重点转向目标相关的性能优化与代码质量提升，主要包括以下几类：
-
-\begin{itemize}
-	\item
-	目标指令匹配与替换优化，如将合法化后形成的指令序列进一步合并为DSP架构提供的伪指令或复合指令，以提升执行效率。
-	
-	\item
-	指令调度友好的局部合并，通过消除多余拷贝、简化寄存器间的数据搬移，降低寄存器压力，为后续寄存器分配与指令调度创造更优条件。
-	
-	\item 
-	面向代码密度和执行效率的微优化，如立即数折叠、访存地址计算合并以及针对硬件流水线特性的局部重写。
-	
-\end{itemize}
-
-由于合法化后指令已经紧密贴合目标架构，这一阶段的优化虽在语义变换自由度上受限，但能够更直接地转化为实际的性能收益。
-
-\end{enumerate}
-
-基于上述两级优化体系的划分，本文在DSP后端中实现的具体优化策略可按照其生效阶段进行归类：其中面向通用GMIR结构、以消除语义拆分冗余和规范化表达式形态为目标的优化，统一放置于Pre-Legalize Combiner阶段；而依赖于合法化后稳定类型与操作数形态、以目标相关指令匹配和代码质量提升为目标的优化，则在Post-Legalize Combiner段实施。下文将结合具体优化实例，对上述两类优化策略的实现方式进行详细说明。
-
 
 % 3.2.1 内存操作优化
 \subsection{内存操作优化}
 作为Pre-Legalize Combiner阶段的典型优化之一，内存操作指令的优化主要针对通用GMIR中高层内存操作所引入的函数调用冗余问题。在GlobalISel默认实现中，如G\_MEMCPY、G\_MEMMOVE等高层内存操作指令通常会被直接降级为库函数调用。然而，对于小规模内存操作而言，函数调用所引入的额外开销往往远大于实际的内存访问成本，从而导致显著的性能浪费。为此，本文在合法化之前引入针对高层内存操作的合并优化策略：主动将小规模内存拷贝操作转换为显式的load/store指令序列，以避免不必要的函数调用。
+
+\par
 
 在DSP后端的Pre-Legalize Combiner中，针对内存操作指令的处理逻辑如下：
 
@@ -287,12 +227,189 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 \end{algorithm}
 
 
+% 3.2.2 拓展截断优化
+\subsection{拓展截断优化}
+除上述典型优化外，DSP后端中还实现了一些针对特定冗余模式和代码生成细节的补充优化。其中，部分优化在Pre-Legalize阶段生效，用于简化通用指令结构；另一部分则依赖于目标指令特性，在Post-Legalize阶段完成。
+
+
+\subsubsection{1.冗余截断与比较指令优化}
+在通用指令生成与合法化前的阶段，编译器常会引入形如截断+比较的冗余指令序列。这类模式通常表现为：先对一个宽位宽寄存器执行截断操作（G\_TRUNC），再将截断结果与零进行比较（G\_ICMP）。该现象多源于高层IR中的类型收缩、布尔表达式转换以及通用化指令拆分策略。
+
+从语义角度分析，若被截断寄存器的高位仅由符号扩展产生，则这些高位在逻辑上并不携带有效信息。在这种情况下，对截断结果进行零比较，与直接对原始宽位宽值进行零比较在语义上是等价的。基于这一观察，本文在合法化前引入了针对冗余截断+比较模式的合并优化。
+
+该优化首先利用KnownBits分析对被截断操作数进行位级信息推断，判断其高位是否完全由符号位扩展而来；若满足该条件，则说明截断操作并不会改变数值的符号与零值判定结果。此时，优化过程将原本以截断结果为操作数的比较指令，直接重写为对宽位宽操作数与零进行比较，同时移除多余的G\_TRUNC指令。一个典型的示例如代码块\ref{lst:trunc_before}和代码块\ref{lst:trunc_after}所示。
+
+\begin{figure}[htbp]
+	\centering
+	\begin{minipage}[t]{0.48\linewidth}
+		\captionsetup{type=lstlisting}
+		\begin{lstlisting}[language=C++, caption={CSE优化前}, label={lst:trunc_before}]
+	%0:_(s64) = COPY $d0
+	%1:_(s32) = G_CONSTANT i32 0
+	%2:_(s32) = G_TRUNC %0:_
+	%3:_(s1)  = G_ICMP slt, %1:_, %2:_
+		\end{lstlisting}
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.48\linewidth}
+		\captionsetup{type=lstlisting}
+		\begin{lstlisting}[language=C++, caption={CSE优化后}, label={lst:trunc_after}]
+	%0:_(s64) = COPY $d0
+	%1:_(s32) = G_CONSTANT i32 0
+	%3:_(s1)  = G_ICMP slt, %0:_, %1:_
+	
+		\end{lstlisting}
+	\end{minipage}
+\end{figure}
+
+通过这一变换，不仅可以减少一条通用中间指令和对应的虚拟寄存器定义，还能显著简化数据流依赖关系，使比较操作更贴近硬件语义。在DSP架构下，该优化有助于后续指令选择阶段更直接地匹配硬件比较指令与条件跳转指令，从而提升代码密度并降低执行延迟。
+
+
+\subsubsection{2.拓展下推优化}
+在GMIR中，算术指令往往作用于经过符号扩展G\_SEXT或零扩展G\_ZEXT后的操作数。这种形式虽然在语义上是正确的，但在实际工程中会引入多余的扩展指令，导致指令数量的增加及后续目标指令匹配与融合的成功率的降低。为此，本文引入一种EPO（Extension Pushing Optimization，扩展下推优化），优化通过重写算术运算与扩展指令的组合形式，将算术操作下推至扩展之前，从而获得更加规范、紧凑的中间表示。
+
+\par
+
+考虑如下典型模式：
+
+\[
+\operatorname{add}(\operatorname{zext}\, x,\ \operatorname{zext}\, y)
+\]
+
+该形式在GMIR中表现为两个扩展指令后接一条算术指令。由于DSP指令集中包含带扩展的算术指令，允许在较小位宽上直接完成算术运算，再对结果进行一次统一扩展。因此，将算术操作推到扩展之前能够减少冗余的扩展指令数量，降低指令条数。除此之外，还能形成更规范的IR结构，提升指令选择阶段的模式匹配成功率。
+
+\par
+
+该优化针对ADD和SUB指令，适用于零扩展与符号扩展两种情形，其核心重写规则可概括为：
+
+\[
+\operatorname{op}\bigl(\operatorname{ext}\, x,\ \operatorname{ext}\, y\bigr)
+\;\Rightarrow\;
+\operatorname{ext}\!\bigl(\operatorname{op}(x, y)\bigr)
+\]
+
+其中，op表示算术操作ADD或SUB，ext表示扩展操作ZEXT或SEXT。需要注意的是，变换过程中必须保证扩展类型的一致性，并在符号扩展场景下正确维护符号语义。在Combiner中，该优化通过参数化的TableGen规则进行描述。其核心定义如下：
+
+\begin{lstlisting}[language=C++, caption={EPO的TableGen规则}, label={lst:epo_tb}]
+	class epo_base<Instruction opcode, Instruction extOpcode>
+	: GICombineRule <
+	(defs root:$root),
+	(match (extOpcode $ext1, $src1):$ExtMI,
+	(extOpcode $ext2, $src2),
+	(opcode $dst, $ext1, $ext2):$root,
+	[{ return matchEPO(*${root}, MRI, $dst, $src1, $src2); }]),
+	(apply [{
+		applyEPO(*${root}, MRI, B,
+		${ExtMI}->getOpcode() == TargetOpcode::G_SEXT, $dst, $src1, $src2);
+	}])
+	>;
+\end{lstlisting}
+
+该规则通过模板参数抽象了算术操作类型ADD/SUB以及扩展类型ZEXT/SEXT，从而避免重复定义多条相似规则。在匹配阶段，规则要求两个操作数均来源于相同类型的扩展指令，并由指定的算术指令使用；在应用阶段，根据扩展类型生成新的算术指令，并在必要时重新插入对应的扩展操作。该优化在语义上是安全的，其正确性基于如下事实：
+
+\begin{itemize}
+	\item 对于零扩展ZEXT，扩展前后的值在无符号算术意义下保持一致.
+	
+	\item 对于符号扩展SEXT，在保证算术运算不发生未定义行为的前提下，先运算后扩展与先扩展后运算在数学语义上等价.
+	
+	\item 优化过程中不改变数据依赖关系，仅调整指令组合方式。
+	
+\end{itemize}
+
+EPO属于一种IR规范化优化，其主要作用并非直接降低执行时间，而是为后续目标相关优化与指令选择提供更优的输入形式。在DSP架构上，该优化提升了复合指令匹配的成功率，并间接减少了最终生成代码中的指令数量。
+
+
+%*********************************************************************
+% 3.3 合法化后优化策略
+%*********************************************************************
+\section{合法化后优化策略}
+合法化之后，所有GMIR指令均已被转换为目标架构支持的合法形式，指令的类型、操作数位宽及内存访问方式均受到严格约束。此时优化的重点转向目标相关的性能优化与代码质量提升，主要包括以下几类：
+
+\begin{itemize}
+	\item
+	目标指令匹配与替换优化，如将合法化后形成的指令序列进一步合并为DSP架构提供的伪指令或复合指令，以提升执行效率。
+	
+	\item
+	指令调度友好的局部合并，通过消除多余拷贝、简化寄存器间的数据搬移，降低寄存器压力，为后续寄存器分配与指令调度创造更优条件。
+	
+	\item 
+	面向代码密度和执行效率的微优化，如立即数折叠、访存地址计算合并以及针对硬件流水线特性的局部重写。
+	
+\end{itemize}
+
+由于合法化后指令已经紧密贴合目标架构，这一阶段的优化虽在语义变换自由度上受限，但能够更直接地转化为实际的性能收益。
+
+
+
+%基于上述两级优化体系的划分，本文在DSP后端中实现的具体优化策略可按照其生效阶段进行归类：其中面向通用GMIR结构、以消除语义拆分冗余和规范化表达式形态为目标的优化，统一放置于Pre-Legalize Combiner阶段；而依赖于合法化后稳定类型与操作数形态、以目标相关指令匹配和代码质量提升为目标的优化，则在Post-Legalize Combiner段实施。下文将结合具体优化实例，对上述两类优化策略的实现方式进行详细说明。
+
+
+% 3.3.1 立即数装载优化
+\subsection{立即数装载优化}
+在指令选择阶段，G\_CONSTANT和G\_FCONSTANT需要被转化为目标指令集可执行的装载立即数序列。对于DSP后端而言，指令采用固定32位编码格式。由于指令由操作码与操作数组成，且立即数字段的编码宽度通常不超过16位，单条指令中可用于表示立即数的位数受到严格限制，因此32位常量一般无法通过单条指令直接完成装载。因此，对于32位立即数，若不加区分地统一采用长立即数装载伪指令MOVI，则会引入额外的指令开销。
+
+\par
+
+针对上述问题，本文结合DSP平台的ISA特性，在全局指令选择阶段对立即数装载过程进行定制化优化。核心思想是根据常量的位型特征对立即数进行分类，并优先选择编码长度更短、执行开销更低的装载形式，从而在保证语义正确性的前提下减少冗余指令。以32位立即数为例，可将其划分为以下三类情况。
+
+
+\subsubsection{1.立即数的高16位全0}
+当立即数的高16位全0时，常量可视为一个零扩展的16位无符号数，只需要装载低16位即可。由于硬件指令集的限制，即使高16位全为0，也无法省略对高位赋值的操作。为此，本文引入基于零寄存器的装载策略，通过设置一个零寄存器并将零寄存器作为源操作数，结合立即数加法或专用低位装载指令来完成常量生成，从而避免使用通用的长立即数序列。
+
+\begin{figure}[htbp]
+	\centering
+	\begin{minipage}[t]{0.48\linewidth}
+		\captionsetup{type=lstlisting}
+		\begin{lstlisting}[language=C++, caption={CSE优化前}, label={lst:imm_con1_before}]
+	MOVIGH GR2 0x0;
+	MOVIGL GR2 0x1;
+		\end{lstlisting}
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.48\linewidth}
+		\captionsetup{type=lstlisting}
+		\begin{lstlisting}[language=C++, caption={CSE优化后}, label={lst:imm_con1_after}]
+	ADDI ZERO 0x1;
+			
+		\end{lstlisting}
+	\end{minipage}
+\end{figure}
+
+
+\subsubsection{2.立即数的高17位全1}
+当立即数的高17位全为1，即为可用16位有符号立即数表示的常量时，可以利用MOVIGLX指令来实现将一个16位的有符号立即数进行符号位扩展至32bit后复制到rd中。于是当常量满足Imm∈\([-2^{15},\, 2^{15}-1]\)时，可将imm16符号扩展到32位写入Rd。
+
+\begin{figure}[htbp]
+	\centering
+	\begin{minipage}[t]{0.48\linewidth}
+		\captionsetup{type=lstlisting}
+		\begin{lstlisting}[language=C++, caption={CSE优化前}, label={lst:imm_con2_before}]
+	MOVIGH GR2 0xFFFF;
+	MOVIGL GR2 0xF123;
+		\end{lstlisting}
+	\end{minipage}\hfill
+	\begin{minipage}[t]{0.48\linewidth}
+		\captionsetup{type=lstlisting}
+		\begin{lstlisting}[language=C++, caption={CSE优化后}, label={lst:imm_con2_after}]
+	MOVIGLX GR2 0xF123;
+
+		\end{lstlisting}
+	\end{minipage}
+\end{figure}
+
+
+\subsubsection{3.其他情况}
+对于不满足上述情况的立即数，由于无法通过单条指令完成装载，只能使用伪指令拓展的长立即数装载方式，伪指令会在后续阶段展开为MOVIGH和MOVIGL两条机器指令。其中MOVIGH装载立即数的高16位到寄存器高半区，而MOVIGL装载立即数的低16位到寄存器低半区。
+
+\par
+
+上述优化策略在指令选择阶段完成判定与映射，避免了在后续低层次优化中再对立即数序列进行修正。通过对立即数位型的精细化分类，该方法在不增加指令选择复杂度的前提下，有效减少了冗余指令的生成，为后续寄存器分配与指令调度提供了更紧凑的输入形式。该优化能够在控制流密集与常量使用频繁的程序中显著降低代码尺寸，并对整体执行效率产生积极影响。
+
+
 % 3.2.2 乘法优化
 \subsection{乘法优化}
-乘法指令优化属于Post-Legalize Combiner阶段的目标相关优化，其实现依赖于合法化后操作数位宽和指令形式的稳定性。对于乘数为编译期常量的整数乘法，直接生成乘法指令在部分架构上往往不是最优选择：一方面，整数乘法的硬件实现通常具有较高的延迟和功耗；另一方面，许多常量乘法在算术上可以等价地分解为移位与加减操作，从而以更低的执行成本完成相同计算。基于这一考虑，本文在合法化后阶段对G\_MUL指令引入常量乘法强度削减优化。当乘数为满足特定形式的编译期常量时，编译器将乘法操作替换为由移位（G\_SHL）与加法（G\_ADD）或减法（G\_SUB）组成的等价指令序列。
+对于乘数为编译期常量的整数乘法，直接生成乘法指令不是最优选择。一方面，整数乘法的硬件实现通常具有较高的延迟和功耗；另一方面，许多常量乘法在算术上可以等价地分解为移位与加减操作，从而以更低的执行成本完成相同计算。基于这一考虑，本文在合法化后阶段对G\_MUL指令引入常量乘法强度削减优化。当乘数为满足特定形式的编译期常量时，编译器将乘法操作替换为由移位G\_SHL与加法G\_ADD或减法G\_SUB组成的等价指令序列。
 
-1.理论基础
 
+\subsubsection{1.理论基础}
 从算术等价关系来看，若常量 $C$ 满足以下形式之一：
 \begin{equation}
 	C = 2^n \pm 1
@@ -318,8 +435,8 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 
 这些变换在保持程序语义完全一致的前提下，能够显著降低指令执行代价，并减少对乘法硬件单元的依赖。
 
-2.匹配阶段
 
+\subsubsection{2.匹配阶段}
 在匹配阶段，优化逻辑以G\_MUL指令为目标，对其操作数及常量特征进行系统分析，整体匹配流程如算法\ref{alg:const_mul_strength_reduction}所示。具体而言，该阶段主要包括以下三个步骤：
 
 \begin{enumerate}
@@ -377,149 +494,13 @@ CSE不仅能够消除冗余指令，为后续优化创造更多的机会，而�
 	\Return success\;
 \end{algorithm}
 
-3.重写阶段
 
+\subsubsection{3.重写阶段}
 在重写阶段，编译器根据匹配到的常量形式，生成对应的移位与加减指令序列，并替换原有的G\_MUL指令。
 
 
-% 3.2.3 拓展截断优化
-\subsection{拓展截断优化}
-除上述典型优化外，DSP后端中还实现了一些针对特定冗余模式和代码生成细节的补充优化。其中，部分优化在Pre-Legalize阶段生效，用于简化通用指令结构；另一部分则依赖于目标指令特性，在Post-Legalize阶段完成。
-
-1.冗余截断与比较指令优化
-
-在通用指令生成与合法化前的阶段，编译器常会引入形如截断+比较的冗余指令序列。这类模式通常表现为：先对一个宽位宽寄存器执行截断操作（G\_TRUNC），再将截断结果与零进行比较（G\_ICMP）。该现象多源于高层IR中的类型收缩、布尔表达式转换以及通用化指令拆分策略。
-
-从语义角度分析，若被截断寄存器的高位仅由符号扩展产生，则这些高位在逻辑上并不携带有效信息。在这种情况下，对截断结果进行零比较，与直接对原始宽位宽值进行零比较在语义上是等价的。基于这一观察，本文在合法化前引入了针对冗余截断+比较模式的合并优化。
-
-该优化首先利用KnownBits分析对被截断操作数进行位级信息推断，判断其高位是否完全由符号位扩展而来；若满足该条件，则说明截断操作并不会改变数值的符号与零值判定结果。此时，优化过程将原本以截断结果为操作数的比较指令，直接重写为对宽位宽操作数与零进行比较，同时移除多余的G\_TRUNC指令。一个典型的示例如表\ref{tab:trunc-icmp-opt}所示。
-
-\noindent
-\setlength{\tabcolsep}{0pt}
-\renewcommand{\arraystretch}{1.0}
-
-\begin{table}[htbp]
-	\centering
-	\caption{冗余截断与比较指令优化前后示例}
-	\label{tab:trunc-icmp-opt}
-	\renewcommand{\arraystretch}{1.0}
-	\lstset{
-		basicstyle=\ttfamily\footnotesize,
-		frame=none,
-		numbers=none
-	}
-	\begin{tabular}{|p{0.48\linewidth}|p{0.48\linewidth}|}
-		\hline
-		\begin{minipage}[t]{\linewidth}
-			
-			\begin{lstlisting}
-				// 优化前
-				%0:_(s64) = COPY $d0
-				%1:_(s32) = G_CONSTANT i32 0
-				%2:_(s32) = G_TRUNC %0:_
-				%3:_(s1)  = G_ICMP slt, %1:_, %2:_
-			\end{lstlisting}
-		\end{minipage}
-		&
-		\begin{minipage}[t]{\linewidth}
-			\begin{lstlisting}
-				// 优化后	
-				%0:_(s64) = COPY $d0
-				%1:_(s32) = G_CONSTANT i32 0
-				%3:_(s1)  = G_ICMP slt, %0:_, %1:_
-			\end{lstlisting}
-		\end{minipage}
-		\\
-		\hline
-	\end{tabular}
-\end{table}
-
-通过这一变换，不仅可以减少一条通用中间指令和对应的虚拟寄存器定义，还能显著简化数据流依赖关系，使比较操作更贴近硬件语义。在DSP架构下，该优化有助于后续指令选择阶段更直接地匹配硬件比较指令与条件跳转指令，从而提升代码密度并降低执行延迟。
-
-2.拓展下推优化
-
-在GMIR中，算术指令往往作用于经过符号扩展G\_SEXT或零扩展G\_ZEXT后的操作数。这种形式虽然在语义上是正确的，但在实际工程中会引入多余的扩展指令，导致指令数量的增加及后续目标指令匹配与融合的成功率的降低。为此，本文引入一种EPO（Extension Pushing Optimization，扩展下推优化），优化通过重写算术运算与扩展指令的组合形式，将算术操作下推至扩展之前，从而获得更加规范、紧凑的中间表示。
-
-\par
-
-考虑如下典型模式：
-
-\[
-\operatorname{add}(\operatorname{zext}\, x,\ \operatorname{zext}\, y)
-\]
-
-该形式在GMIR中表现为两个扩展指令后接一条算术指令。由于DSP指令集中包含带扩展的算术指令，允许在较小位宽上直接完成算术运算，再对结果进行一次统一扩展。因此，将算术操作推到扩展之前能够减少冗余的扩展指令数量，降低指令条数。除此之外，还能形成更规范的IR结构，提升指令选择阶段的模式匹配成功率。
-
-\par
-
-该优化针对ADD和SUB指令，适用于零扩展与符号扩展两种情形，其核心重写规则可概括为：
-
-\[
-\operatorname{op}\bigl(\operatorname{ext}\, x,\ \operatorname{ext}\, y\bigr)
-\;\Rightarrow\;
-\operatorname{ext}\!\bigl(\operatorname{op}(x, y)\bigr)
-\]
-
-其中，op表示算术操作ADD或SUB，ext表示扩展操作ZEXT或SEXT。需要注意的是，变换过程中必须保证扩展类型的一致性，并在符号扩展场景下正确维护符号语义。在Combiner中，该优化通过参数化的TableGen规则进行描述。其核心定义如下：
-
-\begin{lstlisting}[language=C++, caption={EPO的TableGen规则}, label={lst:epo_tb}]
-	class epo_base<Instruction opcode, Instruction extOpcode>
-	: GICombineRule <
-	(defs root:$root),
-	(match (extOpcode $ext1, $src1):$ExtMI,
-	(extOpcode $ext2, $src2),
-	(opcode $dst, $ext1, $ext2):$root,
-	[{ return matchEPO(*${root}, MRI, $dst, $src1, $src2); }]),
-	(apply [{
-		applyEPO(*${root}, MRI, B,
-		${ExtMI}->getOpcode() == TargetOpcode::G_SEXT, $dst, $src1, $src2);
-	}])
-	>;
-\end{lstlisting}
-
-该规则通过模板参数抽象了算术操作类型ADD/SUB以及扩展类型ZEXT/SEXT，从而避免重复定义多条相似规则。在匹配阶段，规则要求两个操作数均来源于相同类型的扩展指令，并由指定的算术指令使用；在应用阶段，根据扩展类型生成新的算术指令，并在必要时重新插入对应的扩展操作。该优化在语义上是安全的，其正确性基于如下事实：
-
-\begin{itemize}
-	\item 对于零扩展ZEXT，扩展前后的值在无符号算术意义下保持一致.
-	
-	\item 对于符号扩展SEXT，在保证算术运算不发生未定义行为的前提下，先运算后扩展与先扩展后运算在数学语义上等价.
-	
-	\item 优化过程中不改变数据依赖关系，仅调整指令组合方式。
-	
-\end{itemize}
-
-EPO属于一种IR规范化优化，其主要作用并非直接降低执行时间，而是为后续目标相关优化与指令选择提供更优的输入形式。在DSP架构上，该优化提升了复合指令匹配的成功率，并间接减少了最终生成代码中的指令数量。
-
-
-% 3.2.4 立即数装载优化
-\subsection{立即数装载优化}
-在指令选择阶段，G\_CONSTANT/G\_FCONSTANT等通用指令需要被转化为目标指令集可执行的装载立即数序列。如果不加区分地统一使用通用长立即数装载指令MOVI，会导致指令条数增加。因此，本文根据DSP平台的ISA来定制化立即数序列的装载函数，采用按常量位型分类的策略：优先长度匹配更短、开销更少的装载形式，从而降低代码尺寸与执行开销。可以将32位立即数分为几种情况:
-
-\begin{itemize}
-	\item
-	高16位全0的常量：当立即数的高16位全0时，有两种方案：
-	\begin{itemize}
-		\item
-		利用MOVIGLZ指令实现，实现将低16位写入寄存器，并将高16位置零。
-		
-		\item
-		利用立即数加法指令ADDI实现，不直接为寄存器赋值，而是借助零寄存器来实现。
-
-	\end{itemize}
-	
-	\item
-	可用16位有符号立即数表示的常量：利用MOVIGLX指令可以实现将一个16位的有符号立即数进行符号位扩展至32bit后复制到rd中。于是当常量满足Imm∈\([-2^{15},\, 2^{15}-1]\)
-	 时，可将imm16符号扩展到32位写入Rd。
-	
-	\item 
-	其他情况：使用PseudoMOVI伪指令实现，伪指令会在后续阶段展开为MOVIGH+MOVIGL两条机器指令。其中MOVIGH装载立即数的高16位到寄存器高半区，而MOVIGL装载立即数的低16位到寄存器低半区。
-	
-\end{itemize}
-
-
-
 %*********************************************************************
-% 3.3 本章小结
+% 3.4 本章小结
 %*********************************************************************
 \section{本章小结}
 

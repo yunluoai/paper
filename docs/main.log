@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  6 JAN 2026 19:27
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  8 JAN 2026 17:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1607,34 +1607,16 @@ Overfull \hbox (2.23468pt too wide) in paragraph at lines 31--32
  []
 
 
-Package fontspec Info: 
-(fontspec)             Script 'CJK' not explicitly supported within font
-(fontspec)             'FandolFang-Regular'. Check the typeset output, and if
-(fontspec)             it is okay then ignore this warning. Otherwise a
-(fontspec)             different font should be chosen.
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 52.
+See the caption package documentation for explanation.
 
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
+nput line 53.
 
-Package fontspec Info: 
-(fontspec)             Font family 'FandolFang(0)' created for font
-(fontspec)             'FandolFang' with options
-(fontspec)             [Script={CJK},Extension={.otf},UprightFont={*-Regular},B
-oldItalicFont={*-Regular},BoldFont={*-Regular},ItalicFont={*-Regular}].
-(fontspec)              
-(fontspec)              This font family consists of the following NFSS
-(fontspec)             series/shapes:
-(fontspec)              
-(fontspec)             - 'normal' (m/n) with NFSS spec.:
-(fontspec)             <->"[FandolFang-Regular.otf]/OT:script=hani;language=dfl
-t;"
-(fontspec)             - 'bold' (b/n) with NFSS spec.:
-(fontspec)             <->"[FandolFang-Regular.otf]/OT:script=hani;language=dfl
-t;"
-(fontspec)             - 'italic' (m/it) with NFSS spec.:
-(fontspec)             <->"[FandolFang-Regular.otf]/OT:script=hani;language=dfl
-t;"
-(fontspec)             - 'bold italic' (b/it) with NFSS spec.:
-(fontspec)             <->"[FandolFang-Regular.otf]/OT:script=hani;language=dfl
-t;"
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 62.
+See the caption package documentation for explanation.
 
 
 
@@ -1648,7 +1630,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 [41]
-Overfull \hbox (2.4297pt too wide) in paragraph at lines 205--206
+Overfull \hbox (2.4297pt too wide) in paragraph at lines 187--188
 []\TU/FandolSong(0)/m/n/12.045 表 达 式 合 并 与 规 范 化，|  如 消 除 冗 余 的 类 型 扩 展  |（\TU/
 XITS(0)/m/n/12.045 G_ZEXT(G_ZEXT(x))\TU/FandolSong(0)/m/n/12.045 ） 、|
  []
@@ -1661,35 +1643,67 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 [43]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
 
 [44]
+
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 289.
+See the caption package documentation for explanation.
+
+
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 298.
+See the caption package documentation for explanation.
+
+
 
 [45]
 
 [46]
 
-[47]
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 465.
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 384.
+See the caption package documentation for explanation.
 
+
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 391.
+See the caption package documentation for explanation.
+
+
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 406.
+See the caption package documentation for explanation.
+
+
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 413.
+See the caption package documentation for explanation.
+
+
+
+[47]
 
 [48])
 
 [49]
+
+[50]
 \openout2 = `chapter4.aux'.
 
  (./chapter4.tex
+第4章
 
-[50
+
+[51
 
 
 
 
 ]
-第4章
-
-
-[51]
 
 [52]
 
@@ -1882,14 +1896,14 @@ LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/08/05>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: A148C7A3AAEC08BCAE9FA1CA1B91D26F;10376.
+(rerunfilecheck)             Checksum: 9378A93A13AE940FE3A2F5304423EF35;10550.
  ) 
 Here is how much of TeX's memory you used:
- 28881 strings out of 473832
- 587163 string characters out of 5733159
- 1405763 words of memory out of 5000000
- 51448 multiletter control sequences out of 15000+600000
- 567504 words of font info for 171 fonts, out of 8000000 for 9000
+ 28866 strings out of 473832
+ 585750 string characters out of 5733159
+ 1404863 words of memory out of 5000000
+ 51440 multiletter control sequences out of 15000+600000
+ 567464 words of font info for 166 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  107i,18n,109p,2041b,3521s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
