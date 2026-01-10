@@ -25,10 +25,10 @@
 \contentsline {section}{\numberline {2.4}寄存器组选择}{24}{section.2.4}%
 \contentsline {subsection}{\fdu@kai \numberline {2.4.1}寄存器组}{24}{subsection.2.4.1}%
 \contentsline {subsection}{\fdu@kai \numberline {2.4.2}寄存器组选择方法}{25}{subsection.2.4.2}%
-\contentsline {subsection}{\fdu@kai \numberline {2.4.3}寄存器组选择实现}{25}{subsection.2.4.3}%
-\contentsline {section}{\numberline {2.5}机器指令选择}{29}{section.2.5}%
-\contentsline {subsection}{\fdu@kai \numberline {2.5.1}匹配状态机}{31}{subsection.2.5.1}%
-\contentsline {subsection}{\fdu@kai \numberline {2.5.2}机器指令选择方法}{32}{subsection.2.5.2}%
+\contentsline {subsection}{\fdu@kai \numberline {2.4.3}寄存器组选择实现}{26}{subsection.2.4.3}%
+\contentsline {section}{\numberline {2.5}机器指令选择}{30}{section.2.5}%
+\contentsline {subsection}{\fdu@kai \numberline {2.5.1}匹配状态机}{30}{subsection.2.5.1}%
+\contentsline {subsection}{\fdu@kai \numberline {2.5.2}机器指令选择方法}{31}{subsection.2.5.2}%
 \contentsline {subsection}{\fdu@kai \numberline {2.5.3}机器指令选择实现}{33}{subsection.2.5.3}%
 \contentsline {section}{\numberline {2.6}本章小结}{34}{section.2.6}%
 \contentsline {chapter}{\normalfont \sffamily \numberline {第3章}面向DSP的全局指令选择优化策略}{37}{chapter.3}%

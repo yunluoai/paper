@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  10 JAN 2026 12:38
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  10 JAN 2026 20:39
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1485,10 +1485,11 @@ Underfull \vbox (badness 1430) has occurred while \output is active []
  (./chapter2.tex
 第2章
 
-Overfull \hbox (7.89397pt too wide) in paragraph at lines 21--22
-[]\TU/XITS(0)/m/n/12.045 SelectionDAG \TU/FandolSong(0)/m/n/12.045 指 令 选 择 方 案 
-通 过 将 基 本 块 内 的 \TU/XITS(0)/m/n/12.045 LLVM IR \TU/FandolSong(0)/m/n/12.045 转 换
- 为 \TU/XITS(0)/m/n/12.045 SelectionDAG
+Overfull \hbox (4.91385pt too wide) in paragraph at lines 22--23
+[]\TU/FandolSong(0)/m/n/12.045 基 于 \TU/XITS(0)/m/n/12.045 DAG \TU/FandolSong(0)
+/m/n/12.045 的 指 令 选 择 方 案 通 过 将 基 本 块 内 的 \TU/XITS(0)/m/n/12.045 LLVM IR \TU/Fa
+ndolSong(0)/m/n/12.045 转 换 为 \TU/XITS(0)/m/n/12.045 SelectionDAG\TU/FandolSong(
+0)/m/n/12.045 ，|
  []
 
 File: pics/dag_flowchart.png Graphic file (type bmp)
@@ -1508,6 +1509,9 @@ File: pics/dag_example.pdf Graphic file (type pdf)
 [12]
 File: pics/fast_flowchart.png Graphic file (type bmp)
 <pics/fast_flowchart.png>
+
+Underfull \vbox (badness 5756) has occurred while \output is active []
+
 
 
 [13]
@@ -1558,15 +1562,21 @@ File: pics/registerbankinfo_class.png Graphic file (type bmp)
 
 
 [25]
-
-[26]
 File: pics/mapping.png Graphic file (type bmp)
 <pics/mapping.png>
+
+
+[26]
+Underfull \vbox (badness 1466) has occurred while \output is active []
+
 
 
 [27]
 
 [28]
+Underfull \vbox (badness 6510) has occurred while \output is active []
+
+
 
 [29]
 
@@ -1575,9 +1585,7 @@ File: pics/mapping.png Graphic file (type bmp)
 [31]
 
 [32]
-
-[33]
-Overfull \hbox (0.82953pt too wide) in paragraph at lines 698--700
+Overfull \hbox (0.82953pt too wide) in paragraph at lines 703--705
 []\TU/XITS(0)/m/n/12.045 4. \TU/FandolSong(0)/m/n/12.045 自 动 匹 配 对 通 过 前 述 阶 段 
 筛 选 的 通 用 指 令，|  调 用 \TU/XITS(0)/m/n/12.045 selectImpl \TU/FandolSong(0)/m/n/12
 .045 执 行 基 于 \TU/XITS(0)/m/n/12.045 Table-
@@ -1585,9 +1593,11 @@ Overfull \hbox (0.82953pt too wide) in paragraph at lines 698--700
 
 
 
+[33])
+
 [34]
 
-[35])
+[35]
 
 [36]
 \openout2 = `chapter3.aux'.
@@ -1884,7 +1894,7 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 Here is how much of TeX's memory you used:
  28874 strings out of 473832
  587904 string characters out of 5729482
- 1405072 words of memory out of 5000000
+ 1419991 words of memory out of 5000000
  51448 multiletter control sequences out of 15000+600000
  567464 words of font info for 166 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
