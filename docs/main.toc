@@ -96,13 +96,13 @@
 \contentsline {subsubsection}{1.度量方法}{79}{subsubsection*.78}%
 \contentsline {subsubsection}{2.实验设置与统计方法}{80}{subsubsection*.79}%
 \contentsline {subsubsection}{3.实验结果与分析}{80}{subsubsection*.80}%
-\contentsline {subsubsection}{4.实验结论}{81}{subsubsection*.82}%
+\contentsline {subsubsection}{4.实验结论}{80}{subsubsection*.82}%
 \contentsline {section}{\numberline {5.3}测试评估平台功能展示}{81}{section.5.3}%
-\contentsline {subsubsection}{1.全局性能趋势分析}{81}{subsubsection*.83}%
-\contentsline {subsubsection}{2.单测试用例性能演化分析}{82}{subsubsection*.85}%
-\contentsline {subsubsection}{3.跨版本性能差异对比分析}{82}{subsubsection*.87}%
-\contentsline {subsubsection}{4.本地性能测试报告上传}{82}{subsubsection*.89}%
-\contentsline {section}{\numberline {5.4}本章小结}{84}{section.5.4}%
+\contentsline {subsubsection}{1.全局性能趋势分析模块}{81}{subsubsection*.83}%
+\contentsline {subsubsection}{2.单测试用例性能演化分析模块}{81}{subsubsection*.85}%
+\contentsline {subsubsection}{3.跨版本性能差异对比分析模块}{83}{subsubsection*.87}%
+\contentsline {subsubsection}{4.本地性能测试报告上传模块}{83}{subsubsection*.89}%
+\contentsline {section}{\numberline {5.4}本章小结}{83}{section.5.4}%
 \contentsline {chapter}{\normalfont \sffamily \numberline {第6章}总结与展望}{85}{chapter.6}%
 \contentsline {section}{\numberline {6.1}论文总结}{85}{section.6.1}%
 \contentsline {section}{\numberline {6.2}论文展望}{86}{section.6.2}%
