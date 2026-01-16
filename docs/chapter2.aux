@@ -21,8 +21,8 @@
 \@writefile{lot}{\contentsline {table}{\numberline {2-1}{\ignorespaces LLVM 不同中间表示层次对比}}{16}{table.caption.11}\protected@file@percent }
 \newlabel{tab:ir_gmir_mir}{{2-1}{16}{LLVM 不同中间表示层次对比}{table.caption.11}{}}
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.2.2}GMIR生成方法}{17}{subsection.2.2.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2-5}{\ignorespaces GMIR生成流程图}}{17}{figure.caption.12}\protected@file@percent }
-\newlabel{fig:irtranslator_call}{{2-5}{17}{GMIR生成流程图}{figure.caption.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2-5}{\ignorespaces IRTranslator调用降级流程及组件交互示意图}}{17}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:irtranslator_call}{{2-5}{17}{IRTranslator调用降级流程及组件交互示意图}{figure.caption.12}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2-6}{\ignorespaces GMIR生成流程图}}{18}{figure.caption.13}\protected@file@percent }
 \newlabel{fig:gmir_gen_flowchart}{{2-6}{18}{GMIR生成流程图}{figure.caption.13}{}}
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.2.3}GMIR生成实现}{18}{subsection.2.2.3}\protected@file@percent }
@@ -31,28 +31,42 @@
 \@writefile{toc}{\contentsline {section}{\numberline {2.3}指令合法化}{20}{section.2.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.3.1}指令合法化方法}{21}{subsection.2.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.3.2}指令合法化实现}{22}{subsection.2.3.2}\protected@file@percent }
+\newlabel{lst:legal_rules}{{2.1}{22}{DSP架构部分合法化规则集}{lstlisting.2.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.1}{\ignorespaces DSP架构部分合法化规则集}}{22}{lstlisting.2.1}\protected@file@percent }
+\newlabel{lst:va_legal_func}{{2.2}{23}{VAStart合法化实现}{lstlisting.2.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.2}{\ignorespaces VAStart合法化实现}}{23}{lstlisting.2.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {2.4}寄存器组选择}{24}{section.2.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.4.1}寄存器组}{24}{subsection.2.4.1}\protected@file@percent }
 \@writefile{lot}{\contentsline {table}{\numberline {2-2}{\ignorespaces DSP架构下寄存器抽象类型与分类}}{25}{table.caption.15}\protected@file@percent }
 \newlabel{tab:reg_type_class}{{2-2}{25}{DSP架构下寄存器抽象类型与分类}{table.caption.15}{}}
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.4.2}寄存器组选择方法}{25}{subsection.2.4.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2-8}{\ignorespaces DSP 架构下寄存器组选择模块结构}}{25}{figure.caption.16}\protected@file@percent }
-\newlabel{fig:registerbankinfo_class}{{2-8}{25}{DSP 架构下寄存器组选择模块结构}{figure.caption.16}{}}
-\@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.4.3}寄存器组选择实现}{26}{subsection.2.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.4.3}寄存器组选择实现}{25}{subsection.2.4.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2-8}{\ignorespaces DSP 架构下寄存器组选择模块结构}}{26}{figure.caption.16}\protected@file@percent }
+\newlabel{fig:registerbankinfo_class}{{2-8}{26}{DSP 架构下寄存器组选择模块结构}{figure.caption.16}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {2-3}{\ignorespaces DSP 架构主要寄存器类特性}}{26}{table.caption.17}\protected@file@percent }
 \newlabel{tab:dsp_register_class}{{2-3}{26}{DSP 架构主要寄存器类特性}{table.caption.17}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2-9}{\ignorespaces 寄存器组分层映射结构图}}{27}{figure.caption.18}\protected@file@percent }
 \newlabel{fig:mapping}{{2-9}{27}{寄存器组分层映射结构图}{figure.caption.18}{}}
+\newlabel{lst:mapping_def}{{2.3}{28}{DSP架构下各Mapping定义}{lstlisting.2.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2.3}{\ignorespaces DSP架构下各Mapping定义}}{28}{lstlisting.2.3}\protected@file@percent }
 \@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces Core Logic of getInstrMapping}}{29}{algocf.1}\protected@file@percent }
 \newlabel{alg:mapping-core}{{1}{29}{寄存器组选择实现}{algocf.1}{}}
 \citation{PengLLVM2024}
 \@writefile{toc}{\contentsline {section}{\numberline {2.5}机器指令选择}{30}{section.2.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.5.1}匹配状态机}{30}{subsection.2.5.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.5.2}机器指令选择方法}{31}{subsection.2.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{1.自动匹配模块}{31}{subsubsection*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{2.手动匹配模块}{32}{subsubsection*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{3.指令生成模块}{32}{subsubsection*.22}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {2.5.3}机器指令选择实现}{33}{subsection.2.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2.6}本章小结}{34}{section.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{1.预处理}{33}{subsubsection*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{2.特殊指令处理}{33}{subsubsection*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{3.合法性校验}{34}{subsubsection*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{4.自动匹配}{34}{subsubsection*.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{5.手动匹配}{34}{subsubsection*.27}\protected@file@percent }
 \@writefile{loa}{\contentsline {algocf}{\numberline {2}{\ignorespaces Core Logic of Instruction Selector}}{35}{algocf.2}\protected@file@percent }
-\newlabel{alg:isel-core}{{2}{35}{机器指令选择实现}{algocf.2}{}}
+\newlabel{alg:isel-core}{{2}{35}{5.手动匹配}{algocf.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.6}本章小结}{36}{section.2.6}\protected@file@percent }
 \@setckpt{chapter2}{
 \setcounter{page}{37}
 \setcounter{equation}{0}
@@ -111,5 +125,5 @@
 \setcounter{Hfootnote}{0}
 \setcounter{Hy@AnnotLevel}{0}
 \setcounter{bookmark@seq@number}{34}
-\setcounter{lstlisting}{0}
+\setcounter{lstlisting}{3}
 }
