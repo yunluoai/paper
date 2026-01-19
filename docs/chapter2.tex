@@ -34,7 +34,7 @@ SelectionDAGISel的设计思路是将LLVM IR转换成DAG来表示指令间的数
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.8\textwidth]{pics/dag_example.pdf}
-	\caption{自增运算函数在指令选择阶段生成的部分SelectionDAG示例}
+	\caption{自增运算函数在指令选择阶段生成的部分SelectionDAG图示例}
 	\label{fig:dag_example}
 \end{figure}
 
@@ -46,7 +46,7 @@ SelectionDAGISel的设计思路是将LLVM IR转换成DAG来表示指令间的数
 
 \par
 
-从设计原理来看，快速指令选择采用线性扫描+模式匹配的策略，以单个指令为处理单位，不构建复杂的中间表示结构。其核心流程为：遍历LLVM IR指令序列，对每条指令直接匹配目标架构的简单指令模式，匹配成功则直接生成机器指令，匹配失败则回退到基于DAG的指令选择。该流程如图\ref{fig:fast_flowchart}所示。
+从设计原理来看，快速指令选择采用线性扫描+模式匹配的策略，以单个指令为处理单位，不构建复杂的中间表示结构。其核心流程为：遍历LLVM IR指令序列，对每条指令直接匹配目标架构的简单指令模式，匹配成功则直接生成机器指令，匹配失败则回退到基于DAG的指令选择。方案的整体流程如图\ref{fig:fast_flowchart}所示。
 
 \begin{figure}[htbp]
 	\centering

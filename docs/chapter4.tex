@@ -497,8 +497,8 @@ YARPGen的原生版本仅区分生成语言，而不会区分目标后端架构�
 			\toprule
 			\textbf{字段名} & \textbf{数据类型} & \textbf{约束} & \textbf{说明} \\
 			\midrule
-			id & varchar(64) & NOT NULL, PK & 测试记录唯一标识 \\
-			case\_name & varchar(128) & NOT NULL & 测试用例名称 \\
+			id & varchar(64) & NOT NULL, PK & 测试记录主键 \\
+			case\_name & varchar(128) & NOT NULL & 测试样例名称 \\
 			status & varchar(16) & NOT NULL & 测试执行状态 \\
 			target\_cpu & varchar(32) & NOT NULL & 目标CPU架构 \\
 			opt\_level & int & NOT NULL & 编译优化级别 \\

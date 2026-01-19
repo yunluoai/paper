@@ -5,7 +5,7 @@
 \@writefile{lof}{\addvspace {10.0pt}}
 \@writefile{lot}{\addvspace {10.0pt}}
 \@writefile{loa}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {5.1}全局指令选择正确性验证}{69}{section.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.1}全局指令选择实现正确性验证}{69}{section.5.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {5.1.1}基本指令正确性验证}{69}{subsection.5.1.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{1.LLVM IR输入}{69}{subsubsection*.74}\protected@file@percent }
 \newlabel{lst:case_1_ir}{{5.1}{69}{示例程序一的LLVM IR表示}{lstlisting.5.1}{}}
@@ -45,46 +45,61 @@
 \@writefile{lol}{\contentsline {lstlisting}{\numberline {5.4}{\ignorespaces 示例程序四的LLVM IR表示}}{78}{lstlisting.5.4}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {5-10}{\ignorespaces 示例程序四的最终阶段Dump图}}{79}{figure.caption.92}\protected@file@percent }
 \newlabel{fig:case_4_final_dump}{{5-10}{79}{示例程序四的最终阶段Dump图}{figure.caption.92}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.2}全局指令选择性能分析}{79}{section.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {5.2.1}编译时间}{79}{subsection.5.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{1.度量方法与相关指标说明}{79}{subsubsection*.93}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5-11}{\ignorespaces 不同编译阶段时间指标图}}{80}{figure.caption.94}\protected@file@percent }
-\newlabel{fig:compile_time_example}{{5-11}{80}{不同编译阶段时间指标图}{figure.caption.94}{}}
-\@writefile{toc}{\contentsline {subsubsection}{2.实验设置与统计方法}{81}{subsubsection*.95}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{3.实验结果与分析}{81}{subsubsection*.96}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5-12}{\ignorespaces 两种指令选择方案平均编译时间对比图}}{81}{figure.caption.97}\protected@file@percent }
-\newlabel{fig:compile_time_contrast}{{5-12}{81}{两种指令选择方案平均编译时间对比图}{figure.caption.97}{}}
-\@writefile{toc}{\contentsline {subsubsection}{4.实验结论}{82}{subsubsection*.98}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {5.2.2}代码尺寸}{82}{subsection.5.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{1.度量方法}{82}{subsubsection*.99}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{2.实验设置与统计方法}{82}{subsubsection*.100}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{3.实验结果分析}{82}{subsubsection*.101}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5-13}{\ignorespaces 优化前后平均代码段尺寸对比图}}{83}{figure.caption.102}\protected@file@percent }
-\newlabel{fig:size_contrast}{{5-13}{83}{优化前后平均代码段尺寸对比图}{figure.caption.102}{}}
-\@writefile{toc}{\contentsline {subsubsection}{4.实验结论}{83}{subsubsection*.103}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {5.2.3}执行周期}{83}{subsection.5.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{1.度量方法}{84}{subsubsection*.104}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{2.实验设置与统计方法}{84}{subsubsection*.105}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{3.实验结果与分析}{84}{subsubsection*.106}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{4.实验结论}{84}{subsubsection*.108}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5-14}{\ignorespaces 不同指令选择方案平均执行周期对比图}}{85}{figure.caption.107}\protected@file@percent }
-\newlabel{fig:cycle_contrast}{{5-14}{85}{不同指令选择方案平均执行周期对比图}{figure.caption.107}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.3}测试评估平台功能展示}{85}{section.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{1.全局性能趋势分析模块}{85}{subsubsection*.109}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5-15}{\ignorespaces 全局性能趋势分析界面展示图}}{86}{figure.caption.110}\protected@file@percent }
-\newlabel{fig:summary}{{5-15}{86}{全局性能趋势分析界面展示图}{figure.caption.110}{}}
-\@writefile{toc}{\contentsline {subsubsection}{2.单测试用例性能演化分析模块}{86}{subsubsection*.111}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{3.跨版本性能差异对比分析模块}{86}{subsubsection*.113}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{4.本地性能测试报告上传模块}{86}{subsubsection*.115}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5-16}{\ignorespaces 单测试用例性能演化分析界面展示图}}{87}{figure.caption.112}\protected@file@percent }
-\newlabel{fig:history}{{5-16}{87}{单测试用例性能演化分析界面展示图}{figure.caption.112}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5-17}{\ignorespaces 跨版本性能差异对比分析界面展示图}}{87}{figure.caption.114}\protected@file@percent }
-\newlabel{fig:compare}{{5-17}{87}{跨版本性能差异对比分析界面展示图}{figure.caption.114}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5-18}{\ignorespaces 本地性能测试报告上传界面展示图}}{88}{figure.caption.116}\protected@file@percent }
-\newlabel{fig:custom}{{5-18}{88}{本地性能测试报告上传界面展示图}{figure.caption.116}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.4}本章小结}{88}{section.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.2}全局指令选择优化有效性验证}{79}{section.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{1.合法化前优化策略的验证}{79}{subsubsection*.93}\protected@file@percent }
+\newlabel{lst:case_5_ir}{{5.5}{79}{示例程序五的LLVM IR表示}{lstlisting.5.5}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.5}{\ignorespaces 示例程序五的LLVM IR表示}}{79}{lstlisting.5.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5-11}{\ignorespaces 示例程序五优化前Dump图}}{80}{figure.caption.94}\protected@file@percent }
+\newlabel{fig:case_5_before_dump}{{5-11}{80}{示例程序五优化前Dump图}{figure.caption.94}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5-12}{\ignorespaces 示例程序五优化后Dump图}}{80}{figure.caption.95}\protected@file@percent }
+\newlabel{fig:case_5_after_dump}{{5-12}{80}{示例程序五优化后Dump图}{figure.caption.95}{}}
+\@writefile{toc}{\contentsline {subsubsection}{2.合法化后优化策略的验证}{80}{subsubsection*.96}\protected@file@percent }
+\newlabel{lst:case_6_ir}{{5.6}{80}{示例程序六的LLVM IR表示}{lstlisting.5.6}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.6}{\ignorespaces 示例程序六的LLVM IR表示}}{80}{lstlisting.5.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5-13}{\ignorespaces 示例程序六优化前Dump图}}{81}{figure.caption.97}\protected@file@percent }
+\newlabel{fig:case_6_before_dump}{{5-13}{81}{示例程序六优化前Dump图}{figure.caption.97}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5-14}{\ignorespaces 示例程序六优化后Dump图}}{81}{figure.caption.98}\protected@file@percent }
+\newlabel{fig:case_6_after_dump}{{5-14}{81}{示例程序六优化后Dump图}{figure.caption.98}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.3}全局指令选择性能分析}{82}{section.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {5.3.1}编译时间}{82}{subsection.5.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{1.度量方法与相关指标说明}{82}{subsubsection*.99}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5-15}{\ignorespaces 不同编译阶段时间指标图}}{82}{figure.caption.100}\protected@file@percent }
+\newlabel{fig:compile_time_example}{{5-15}{82}{不同编译阶段时间指标图}{figure.caption.100}{}}
+\@writefile{toc}{\contentsline {subsubsection}{2.实验设置与统计方法}{83}{subsubsection*.101}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{3.实验结果与分析}{84}{subsubsection*.102}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5-16}{\ignorespaces 两种指令选择方案平均编译时间对比图}}{84}{figure.caption.103}\protected@file@percent }
+\newlabel{fig:compile_time_contrast}{{5-16}{84}{两种指令选择方案平均编译时间对比图}{figure.caption.103}{}}
+\@writefile{toc}{\contentsline {subsubsection}{4.实验结论}{84}{subsubsection*.104}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {5.3.2}代码尺寸}{85}{subsection.5.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{1.度量方法}{85}{subsubsection*.105}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{2.实验设置与统计方法}{85}{subsubsection*.106}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{3.实验结果分析}{85}{subsubsection*.107}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{4.实验结论}{85}{subsubsection*.109}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5-17}{\ignorespaces 优化前后平均代码段尺寸对比图}}{86}{figure.caption.108}\protected@file@percent }
+\newlabel{fig:size_contrast}{{5-17}{86}{优化前后平均代码段尺寸对比图}{figure.caption.108}{}}
+\@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {5.3.3}执行周期}{86}{subsection.5.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{1.度量方法}{86}{subsubsection*.110}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{2.实验设置与统计方法}{87}{subsubsection*.111}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{3.实验结果与分析}{87}{subsubsection*.112}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5-18}{\ignorespaces 不同指令选择方案平均执行周期对比图}}{87}{figure.caption.113}\protected@file@percent }
+\newlabel{fig:cycle_contrast}{{5-18}{87}{不同指令选择方案平均执行周期对比图}{figure.caption.113}{}}
+\@writefile{toc}{\contentsline {subsubsection}{4.实验结论}{88}{subsubsection*.114}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.4}测试评估平台功能展示}{88}{section.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{1.全局性能趋势分析模块}{88}{subsubsection*.115}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{2.单测试用例性能演化分析模块}{88}{subsubsection*.117}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{3.跨版本性能差异对比分析模块}{88}{subsubsection*.119}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5-19}{\ignorespaces 全局性能趋势分析界面展示图}}{89}{figure.caption.116}\protected@file@percent }
+\newlabel{fig:summary}{{5-19}{89}{全局性能趋势分析界面展示图}{figure.caption.116}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5-20}{\ignorespaces 单测试用例性能演化分析界面展示图}}{89}{figure.caption.118}\protected@file@percent }
+\newlabel{fig:history}{{5-20}{89}{单测试用例性能演化分析界面展示图}{figure.caption.118}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5-21}{\ignorespaces 跨版本性能差异对比分析界面展示图}}{90}{figure.caption.120}\protected@file@percent }
+\newlabel{fig:compare}{{5-21}{90}{跨版本性能差异对比分析界面展示图}{figure.caption.120}{}}
+\@writefile{toc}{\contentsline {subsubsection}{4.本地性能测试报告上传模块}{90}{subsubsection*.121}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5-22}{\ignorespaces 本地性能测试报告上传界面展示图}}{90}{figure.caption.122}\protected@file@percent }
+\newlabel{fig:custom}{{5-22}{90}{本地性能测试报告上传界面展示图}{figure.caption.122}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.5}本章小结}{90}{section.5.5}\protected@file@percent }
 \@setckpt{chapter5}{
-\setcounter{page}{89}
+\setcounter{page}{92}
 \setcounter{equation}{0}
 \setcounter{enumi}{3}
 \setcounter{enumii}{0}
@@ -94,12 +109,12 @@
 \setcounter{mpfootnote}{0}
 \setcounter{part}{0}
 \setcounter{chapter}{5}
-\setcounter{section}{4}
+\setcounter{section}{5}
 \setcounter{subsection}{0}
 \setcounter{subsubsection}{0}
 \setcounter{paragraph}{0}
 \setcounter{subparagraph}{0}
-\setcounter{figure}{18}
+\setcounter{figure}{22}
 \setcounter{table}{0}
 \setcounter{parentequation}{0}
 \setcounter{pp@a@footnote}{5}
@@ -134,12 +149,12 @@
 \setcounter{algocfline}{4}
 \setcounter{algocfproc}{4}
 \setcounter{algocf}{4}
-\setcounter{lstnumber}{8}
+\setcounter{lstnumber}{11}
 \setcounter{NAT@ctr}{0}
 \setcounter{section@level}{0}
 \setcounter{Item}{31}
 \setcounter{Hfootnote}{0}
 \setcounter{Hy@AnnotLevel}{0}
-\setcounter{bookmark@seq@number}{70}
-\setcounter{lstlisting}{4}
+\setcounter{bookmark@seq@number}{71}
+\setcounter{lstlisting}{6}
 }
