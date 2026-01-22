@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  19 JAN 2026 17:31
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  22 JAN 2026 20:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1856,6 +1856,9 @@ File: pics/mapping.png Graphic file (type bmp)
 [33]
 
 [34]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
 
 [35])
 
@@ -1907,12 +1910,12 @@ File: pics/combiner.png Graphic file (type bmp)
 [44]
 
 Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 259.
+(caption)                 on input line 271.
 See the caption package documentation for explanation.
 
 
 Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 268.
+(caption)                 on input line 280.
 See the caption package documentation for explanation.
 
 
@@ -1922,12 +1925,12 @@ See the caption package documentation for explanation.
 [46]
 
 Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 371.
+(caption)                 on input line 383.
 See the caption package documentation for explanation.
 
 
 Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 378.
+(caption)                 on input line 390.
 See the caption package documentation for explanation.
 
 
@@ -1935,21 +1938,21 @@ See the caption package documentation for explanation.
 [47]
 
 Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 393.
+(caption)                 on input line 405.
 See the caption package documentation for explanation.
 
 
 Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 400.
+(caption)                 on input line 412.
 See the caption package documentation for explanation.
 
 
 
-[48])
+[48]
 
 [49]
 
-[50]
+[50])
 
 [51]
 \openout2 = `chapter4.aux'.
@@ -1995,9 +1998,6 @@ File: pics/yarpgen_class.png Graphic file (type bmp)
 
 
 [62]
-Underfull \vbox (badness 5771) has occurred while \output is active []
-
-
 
 [63]
 
@@ -2125,24 +2125,28 @@ File: pics/case_2_final_dump_2.png Graphic file (type bmp)
 [74]
 
 [75]
-File: pics/case_3_final_dump.png Graphic file (type bmp)
-<pics/case_3_final_dump.png>
-File: pics/case_3_final_dump_2.png Graphic file (type bmp)
-<pics/case_3_final_dump_2.png>
-
-
-[76]
-
-[77]
 File: pics/case_4_final_dump.png Graphic file (type bmp)
 <pics/case_4_final_dump.png>
 
 
-[78]
+[76]
 File: pics/case_5_before_dump.png Graphic file (type bmp)
 <pics/case_5_before_dump.png>
 File: pics/case_5_after_dump.png Graphic file (type bmp)
 <pics/case_5_after_dump.png>
+
+
+[77]
+File: pics/pre_optimization_code_size.png Graphic file (type bmp)
+<pics/pre_optimization_code_size.png>
+
+
+[78]
+File: pics/pre_optimization_cycle.png Graphic file (type bmp)
+<pics/pre_optimization_cycle.png>
+
+Underfull \vbox (badness 4621) has occurred while \output is active []
+
 
 
 [79]
@@ -2151,35 +2155,41 @@ File: pics/case_6_before_dump.png Graphic file (type bmp)
 File: pics/case_6_after_dump.png Graphic file (type bmp)
 <pics/case_6_after_dump.png>
 
+Underfull \vbox (badness 2689) has occurred while \output is active []
+
+
 
 [80]
+File: pics/post_optimization_code_size.png Graphic file (type bmp)
+<pics/post_optimization_code_size.png>
+
 
 [81]
-File: pics/compile_time_example.png Graphic file (type bmp)
-<pics/compile_time_example.png>
+File: pics/post_optimization_cycle.png Graphic file (type bmp)
+<pics/post_optimization_cycle.png>
 
 
 [82]
-File: pics/compile_time_contrast.png Graphic file (type bmp)
-<pics/compile_time_contrast.png>
-
-
-[83]
-
-[84]
 File: pics/size_contrast.png Graphic file (type bmp)
 <pics/size_contrast.png>
 
 
-[85]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-
-[86]
+[83]
 File: pics/cycle_contrast.png Graphic file (type bmp)
 <pics/cycle_contrast.png>
 
+
+[84]
+File: pics/compile_time_example.png Graphic file (type bmp)
+<pics/compile_time_example.png>
+
+
+[85]
+File: pics/compile_time_contrast.png Graphic file (type bmp)
+<pics/compile_time_contrast.png>
+
+
+[86]
 
 [87]
 File: pics/summary.png Graphic file (type bmp)
@@ -2195,47 +2205,43 @@ File: pics/compare.png Graphic file (type bmp)
 [89]
 File: pics/custom.png Graphic file (type bmp)
 <pics/custom.png>
+)
 
-
-[90])
-
-[91]
+[90]
 \openout2 = `chapter6.aux'.
 
  (./chapter6.tex
-
-[92
-
-
-
-
-]
 第6章
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-[93])
+[91
 
-[94] (./main.bbl
 
-[95
+
+
+])
+
+[92] (./main.bbl
+
+[93
 
 
 
 
 ]
 
-[96]
+[94]
+
+[95]
+
+[96])
 
 [97]
 
-[98])
-
-[99]
-
-[100
+[98
 
 ]
 \tf@thm=\write6
@@ -2243,28 +2249,28 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-[101]
+[99]
 
-[102
+[100
 
 ]
 
-[103] (./main.aux (./chapter1.aux) (./chapter2.aux) (./chapter3.aux)
+[101] (./main.aux (./chapter1.aux) (./chapter2.aux) (./chapter3.aux)
 (./chapter4.aux) (./chapter5.aux) (./chapter6.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/08/05>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 2C9BBA2E7D8A376BB668E1890415F331;10750.
+(rerunfilecheck)             Checksum: 4DE31AF828685FC20A99B5ADE940CAEF;11218.
  ) 
 Here is how much of TeX's memory you used:
- 39541 strings out of 473832
- 822557 string characters out of 5733159
- 1622034 words of memory out of 5000000
- 61891 multiletter control sequences out of 15000+600000
+ 39550 strings out of 473832
+ 823349 string characters out of 5733159
+ 1627161 words of memory out of 5000000
+ 61898 multiletter control sequences out of 15000+600000
  567480 words of font info for 168 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 107i,18n,109p,2041b,3475s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 107i,18n,109p,2041b,3575s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.pdf (113 pages).
+Output written on main.pdf (111 pages).

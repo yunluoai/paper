@@ -21,25 +21,25 @@
 \newlabel{fig:combiner}{{3-1}{41}{GlobalISel合并优化流程示意图}{figure.caption.35}{}}
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {3.1.3}面向DSP的优化设计}{41}{subsection.3.1.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3.2}合法化前优化策略}{42}{section.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {3.2.1}内存操作优化}{42}{subsection.3.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {3.2.1}内存操作优化}{43}{subsection.3.2.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {3.2.2}拓展截断优化}{43}{subsection.3.2.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{1.冗余截断与比较指令优化}{43}{subsubsection*.37}\protected@file@percent }
 \@writefile{loa}{\contentsline {algocf}{\numberline {3}{\ignorespaces lowerMemcpy: inline memcpy as loads/stores}}{44}{algocf.3}\protected@file@percent }
 \newlabel{alg:lower-memcpy}{{3}{44}{内存操作优化}{algocf.3}{}}
-\newlabel{lst:trunc_before}{{3.4}{45}{CSE优化前}{lstlisting.3.4}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.4}{\ignorespaces CSE优化前}}{45}{lstlisting.3.4}\protected@file@percent }
-\newlabel{lst:trunc_after}{{3.5}{45}{CSE优化后}{lstlisting.3.5}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.5}{\ignorespaces CSE优化后}}{45}{lstlisting.3.5}\protected@file@percent }
+\newlabel{lst:trunc_before}{{3.4}{45}{截断比较优化前}{lstlisting.3.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.4}{\ignorespaces 截断比较优化前}}{45}{lstlisting.3.4}\protected@file@percent }
+\newlabel{lst:trunc_after}{{3.5}{45}{截断比较优化后}{lstlisting.3.5}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.5}{\ignorespaces 截断比较优化后}}{45}{lstlisting.3.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{2.拓展下推优化}{45}{subsubsection*.41}\protected@file@percent }
 \newlabel{lst:epo_tb}{{3.6}{46}{EPO的TableGen规则}{lstlisting.3.6}{}}
 \@writefile{lol}{\contentsline {lstlisting}{\numberline {3.6}{\ignorespaces EPO的TableGen规则}}{46}{lstlisting.3.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3.3}合法化后优化策略}{46}{section.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.3}合法化后优化策略}{47}{section.3.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {3.3.1}立即数装载优化}{47}{subsection.3.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{1.立即数的高16位全0}{47}{subsubsection*.42}\protected@file@percent }
-\newlabel{lst:imm_con1_before}{{3.7}{47}{CSE优化前}{lstlisting.3.7}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.7}{\ignorespaces CSE优化前}}{47}{lstlisting.3.7}\protected@file@percent }
-\newlabel{lst:imm_con1_after}{{3.8}{47}{CSE优化后}{lstlisting.3.8}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.8}{\ignorespaces CSE优化后}}{47}{lstlisting.3.8}\protected@file@percent }
+\newlabel{lst:imm_con1_before}{{3.7}{48}{CSE优化前}{lstlisting.3.7}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.7}{\ignorespaces CSE优化前}}{48}{lstlisting.3.7}\protected@file@percent }
+\newlabel{lst:imm_con1_after}{{3.8}{48}{CSE优化后}{lstlisting.3.8}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.8}{\ignorespaces CSE优化后}}{48}{lstlisting.3.8}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{2.立即数的高17位全1}{48}{subsubsection*.46}\protected@file@percent }
 \newlabel{lst:imm_con2_before}{{3.9}{48}{CSE优化前}{lstlisting.3.9}{}}
 \@writefile{lol}{\contentsline {lstlisting}{\numberline {3.9}{\ignorespaces CSE优化前}}{48}{lstlisting.3.9}\protected@file@percent }
@@ -47,12 +47,12 @@
 \@writefile{lol}{\contentsline {lstlisting}{\numberline {3.10}{\ignorespaces CSE优化后}}{48}{lstlisting.3.10}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{3.其他情况}{48}{subsubsection*.50}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\fdu@kai \numberline {3.3.2}乘法优化}{48}{subsection.3.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{1.理论基础}{48}{subsubsection*.51}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{1.理论基础}{49}{subsubsection*.51}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{2.匹配阶段}{49}{subsubsection*.52}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{3.重写阶段}{49}{subsubsection*.54}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3.4}本章小结}{49}{section.3.4}\protected@file@percent }
 \@writefile{loa}{\contentsline {algocf}{\numberline {4}{\ignorespaces Constant-Multiply Strength Reduction}}{50}{algocf.4}\protected@file@percent }
 \newlabel{alg:const_mul_strength_reduction}{{4}{50}{2.匹配阶段}{algocf.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.4}本章小结}{51}{section.3.4}\protected@file@percent }
 \@setckpt{chapter3}{
 \setcounter{page}{52}
 \setcounter{equation}{5}

@@ -29,7 +29,7 @@
 \end{figure}
 
 
-SelectionDAGISel的设计思路是将LLVM IR转换成DAG来表示指令间的数据流依赖关系，然后再通过模式匹配和树覆盖的方法来将DAG内的节点转换为目标架构的机器指令。SelectionDAGISel的执行过程分为三个阶段：第一阶段，框架将LLVM IR指令序列转为SelectionDAG。在DAG图中每个节点表示一种操作，边表示数据依赖，能直观地看到指令之间的数据流依赖关系，不再需要对指令进行线性的扫描；第二阶段，为了简化后续的匹配流程，框架对SelectionDAG进行标准化操作及优化；第三阶段，框架采用基于TableGen自动生成的模式匹配器，对优化后的SelectionDAG进行拓扑排序，通过自底向上遍历节点来匹配目标架构在td文件中定义的DAG模式，之后将匹配成功的节点替换为对应的机器指令，最终生成目标架构的机器代码。图\ref{fig:dag_example}展示了一个简单自增运算函数在指令选择阶段生成、调度之前的部分SelectionDAG图。
+SelectionDAGISel的设计思路是将LLVM IR转换成DAG来表示指令间的数据流依赖关系，然后再通过模式匹配和树覆盖的方法来将DAG内的节点转换为目标架构的机器指令。SelectionDAGISel的执行过程分为三个阶段：第一阶段，框架将LLVM IR指令序列转为SelectionDAG。在DAG图中每个节点表示一种操作，边表示数据依赖，能直观地看到指令之间的数据流依赖关系，不再需要对指令进行线性的扫描；第二阶段，为了简化后续的匹配流程，框架对SelectionDAG进行标准化操作及优化；第三阶段，框架采用基于TableGen自动生成的模式匹配器，对优化后的SelectionDAG进行拓扑排序，通过自底向上遍历节点来匹配目标架构在.td文件中定义的DAG模式，之后将匹配成功的节点替换为对应的机器指令，最终生成目标架构的机器代码。图\ref{fig:dag_example}展示了一个简单自增运算函数在指令选择阶段生成、调度之前的部分SelectionDAG图。
 
 \begin{figure}[htbp]
 	\centering
@@ -309,36 +309,36 @@ GMIR生成的执行过程是以函数为粒度进行的，与SelectionDAGISel是
 
 % 2.3.2 指令合法化实现
 \subsection{指令合法化实现}
-根据2.3.1的设计，合法化阶段的目标是非法指令的识别与非法指令的转化。在具体实现上，合法化流程首先需要明确目标架构所支持的LLT类型集合，该集合不仅包括各类数据类型，还包括地址类型与内存访问相关的类型信息。上述类型集合构成了指令合法性判定的基础边界，用以描述目标架构在位宽支持、对齐约束以及寻址能力等方面的硬件限制。
+根据2.3.1节的设计可知，合法化阶段的主要目的是非法指令的识别与非法指令的转化。在具体实现上，首先需要明确目标架构所支持的LLT类型集合，该集合不仅包括各类数据类型，还包括地址类型与内存访问相关的类型信息。上述类型集合构成了指令合法性判定的基础边界，用以描述目标架构在位宽支持、对齐约束以及寻址能力等方面的硬件限制。
 
 \par
 
-在此基础上，需要构建一组合法化规则集，用于对GMIR指令进行系统化的合法性判定与处理策略选择。LegalityQuery对象是规则集的核心载体，该对象通过结构化封装的方式，将合法性判定所需的关键信息统一组织为标准数据结构。具体包括指令操作码、各操作数索引对应的LLT类型、MachineMemOperand中描述的内存访问字节大小，以及针对内存类指令的原子性与顺序约束等信息。DSP架构的部分合法化规则集如代码块\ref{lst:legal_rules}所示。
+在此基础上构建一组合法化规则集，规则集用于对GMIR指令进行合法性判定与处理策略选择。规则集的核心载体是LegalityQuery对象，该对象采用结构化封装的方式，将合法性判定所需的关键信息统一组织为标准数据结构。具体包括指令操作码、各操作数索引对应的LLT类型、MachineMemOperand中描述的内存访问字节大小，以及针对内存类指令的原子性与顺序约束等信息。DSP架构的部分合法化规则集如代码块\ref{lst:legal_rules}所示。
 
 \lstset{language=c++}
 \begin{lstlisting}[language=C++, caption={DSP架构部分合法化规则集}, label={lst:legal_rules}]
-DSPLegalizerInfo::DSPLegalizerInfo(const DSPSubtarget &ST)
-		: STI(ST), XLen(STI.getXLen()), SXLen(LLT::scalar(XLen)) { 
-	const LLT S1 = LLT::scalar(1);
-	const LLT S8 = LLT::scalar(8);
-	const LLT S16 = LLT::scalar(16);
-	const LLT S32 = LLT::scalar(32);
-	const LLT S64 = LLT::scalar(64);
-	const LLT P0 = LLT::pointer(0, 32);
-	const LLT SDoubleXLen = LLT::scalar(2 * XLen);
-	......
-	auto &ShiftActions = getActionDefinitionsBuilder({G_ASHR,G_LSHR,G_SHL});
-	if (ST.is64Bit())
+	DSPLegalizerInfo::DSPLegalizerInfo(const DSPSubtarget &ST)
+	: STI(ST), XLen(STI.getXLen()), SXLen(LLT::scalar(XLen)) { 
+		const LLT S1 = LLT::scalar(1);
+		const LLT S8 = LLT::scalar(8);
+		const LLT S16 = LLT::scalar(16);
+		const LLT S32 = LLT::scalar(32);
+		const LLT S64 = LLT::scalar(64);
+		const LLT P0 = LLT::pointer(0, 32);
+		const LLT SDoubleXLen = LLT::scalar(2 * XLen);
+		......
+		auto &ShiftActions = getActionDefinitionsBuilder({G_ASHR,G_LSHR,G_SHL});
+		if (ST.is64Bit())
 		ShiftActions.customFor({{S32, S32}});
-	ShiftActions.legalFor({{S32, S32}, {S32, SXLen}, {SXLen, SXLen}})
+		ShiftActions.legalFor({{S32, S32}, {S32, SXLen}, {SXLen, SXLen}})
 		.widenScalarToNextPow2(0)
 		.clampScalar(1, S32, SXLen)
 		.clampScalar(0, S32, SXLen)
 		.minScalarSameAs(1, 0);
 		......
-\end{lstlisting}
+	\end{lstlisting}
 
-这种设计在工程实践中具有明显的优势。一方面，其他编译Pass可直接基于LegalityQuery对象查询指令合法性，而无需重复解析指令内部结构，从而有效地降低实现复杂度。另一方面，合法性判定过程不依赖于实际指令实例的构造，这样做的好处是能够避免额外的对象创建与析构开销，在提升编译效率的同时，也使LegalityQuery对象能够直接作为谓词约束的输入参数，支撑更为复杂和精细的合法性判断逻辑。
+这种设计在工程中具有明显的优势。一方面，其他编译Pass可直接基于LegalityQuery对象查询指令合法性，而无需重复解析指令内部结构，从而有效地降低实现复杂度。另一方面，合法性判定过程不依赖于实际指令实例的构造，这样做的好处是能够避免额外的对象创建与析构开销，在提升编译效率的同时，能支撑更为复杂和精细的合法性判断逻辑。
 
 \par
 
@@ -350,23 +350,23 @@ DSPLegalizerInfo::DSPLegalizerInfo(const DSPSubtarget &ST)
 
 \par
 
-对于一些合法化逻辑复杂的指令，框架提供的标准化的规则集往往不足以无法完成目标架构适配，因此需要实现自定义合法化函数legalizeCustom来承载专有的合法化逻辑。与此同时，对于架构强相关的内建函数，还需要额外实现legalizeIntrinsic的处理入口，以完成对应内建函数的合法化。以G\_VASTART指令为例，该指令用于在可变参数函数中标记可变参数的起始位置，其合法化过程通常需要通过legalizeCustom实现定制化转换，将通用的G\_VASTART语义映射为DSP架构可执行的内存存储序列，并显式体现与栈帧布局相关的约束关系。实现代码如代码块\ref{lst:va_legal_func}所示。
+对于一些合法化逻辑复杂的指令，框架提供的标准化的规则集往往不足以无法完成目标架构适配，因此需要实现自定义合法化函数legalizeCustom来承载专有的合法化逻辑。与此同时，对于架构强相关的内建函数，还需要额外实现legalizeIntrinsic的处理入口，以完成对应内建函数的合法化。以G\_VASTART指令为例，该指令用于在可变参数函数中标记可变参数的起始位置，由于规则集不足以完成DSP架构的适配，于是需要通过legalizeCustom实现该指令的合法化，将通用的G\_VASTART语义映射为DSP架构可执行的内存存储序列，并显式体现与栈帧布局相关的约束关系。实现代码如代码块\ref{lst:va_legal_func}所示。
 
 \lstset{language=c++}
 \begin{lstlisting}[language=C++, caption={VAStart合法化实现}, label={lst:va_legal_func}]
-bool DSPLegalizerInfo::legalizeVAStart(MachineInstr &MI,
-		MachineIRBuilder &MIRBuilder) const {
-	assert(MI.getOpcode() == TargetOpcode::G_VASTART);
-	MachineFunction *MF = MI.getParent()->getParent();
-	DSPMachineFunctionInfo *FuncInfo = MF->getInfo<DSPMachineFunctionInfo>();
-	int FI = FuncInfo->getVarArgsFrameIndex();
-	LLT AddrTy = MIRBuilder.getMRI()->getType(MI.getOperand(0).getReg());
-	auto FINAddr = MIRBuilder.buildFrameIndex(AddrTy, FI);
-	assert(MI.hasOneMemOperand());
-	MIRBuilder.buildStore(FINAddr, MI.getOperand(0).getReg(), *MI.memoperands()[0]);
-	MI.eraseFromParent();
-	return true;
-}
+	bool DSPLegalizerInfo::legalizeVAStart(MachineInstr &MI,
+	MachineIRBuilder &MIRBuilder) const {
+		assert(MI.getOpcode() == TargetOpcode::G_VASTART);
+		MachineFunction *MF = MI.getParent()->getParent();
+		DSPMachineFunctionInfo *FuncInfo = MF->getInfo<DSPMachineFunctionInfo>();
+		int FI = FuncInfo->getVarArgsFrameIndex();
+		LLT AddrTy = MIRBuilder.getMRI()->getType(MI.getOperand(0).getReg());
+		auto FINAddr = MIRBuilder.buildFrameIndex(AddrTy, FI);
+		assert(MI.hasOneMemOperand());
+		MIRBuilder.buildStore(FINAddr, MI.getOperand(0).getReg(), *MI.memoperands()[0]);
+		MI.eraseFromParent();
+		return true;
+	}
 \end{lstlisting}
 
 
@@ -383,7 +383,7 @@ bool DSPLegalizerInfo::legalizeVAStart(MachineInstr &MI,
 
 % 2.4.1 寄存器组
 \subsection{寄存器组}
-在GlobalISel框架中，Register Bank（寄存器组）是目标架构层面的关键抽象组件，其设计目标是在满足硬件指令访问约束的前提下，通过弱约束分组机制平衡寄存器分配的灵活性与跨寄存器资源的数据交互开销，从而兼顾编译效率与生成代码性能。与传统编译器的Register Class（寄存器类）不同，Register Bank仅关注寄存器的最大数据宽度及支持的操作集合，而不对具体物理编号和精确位宽做强约束，这使得编译器在分配阶段拥有更大的选择空间。
+在GlobalISel中，Register Bank（寄存器组）是目标架构层面的关键抽象组件，其设计目标是在满足硬件指令访问约束的前提下，通过弱约束分组机制平衡寄存器分配的灵活性与跨寄存器资源的数据交互开销，从而兼顾编译效率与生成代码性能。与传统编译器的Register Class（寄存器类）不同，Register Bank仅关注寄存器的最大数据宽度及支持的操作集合，而不对具体物理编号和精确位宽做强约束，这使得编译器在分配阶段拥有更大的选择空间。
 
 \par
 
@@ -600,10 +600,11 @@ getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现�
 
 % 2.5.1 匹配状态机
 \subsection{匹配状态机}
-在LLVM的指令选择体系中，匹配状态机是支撑基于表驱动的树覆盖指令选择的核心底层组件，其本质是一种由TableGen工具自动生成的FSM（Finite State Machine，有限状态机），其核心作用是将GMIR指令构成的AST与目标架构的指令模式进行自动化匹配，从而确定可映射为MIR的合法目标指令模式。
+在LLVM的指令选择体系中，匹配状态机是支撑基于表驱动的树覆盖指令选择的核心组件，匹配状态机本质是一种由TableGen工具自动生成的FSM（Finite State Machine，有限状态机），其核心作用是将GMIR指令构成的AST与目标架构的指令模式进行自动化匹配，从而确定可映射为MIR的合法目标指令模式。
 
 \par
-在td文件中以树模式的形式描述目标架构指令的结构特征，TableGen工具会对所有指令树模式进行解析，提取其中的关键信息，其中包括操作码、操作数类型、寄存器组约束以及数据位宽等，并将这些特征系统化地编码为状态机的状态节点与转移条件。其中状态节点对应指令树在不同层级上的特征匹配状态，而转移条件则描述从当前特征匹配到下一层特征的合法规则。最终，TableGen将所有状态节点与转移关系整合为完整的状态机代码，状态机完整覆盖了从初始状态、中间匹配状态，直至最终成功匹配或匹配失败的完整流程。其中，每一个成功匹配状态均唯一对应于一条目标架构的指令模式。
+
+在TableGen的描述文件中，目标架构的指令结构以树模式（Pattern）进行形式化定义。TableGen工具会对所有Pattern进行解析，并提取其关键特征，包括操作码、操作数类型、寄存器组约束以及数据位宽等。这些特征随后被系统化地编码为状态机的状态节点与转移条件。TableGen最终将所有状态节点及其间的转移关系整合，生成完整的状态机实现代码。该状态机覆盖了从初始状态开始，历经若干中间匹配状态，直至到达最终成功匹配状态或失败状态的完整路径。在生成的状态机中，每一个成功匹配状态都唯一对应一条可被选择的目标架构指令模式，从而确保指令匹配过程的确定性与一致性。
 
 \par
 
@@ -625,7 +626,11 @@ getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现�
 
 \par
 
-基于DFA构建的指令匹配状态机在指令选择阶段的核心优势体现在自动化生成与可扩展性两方面。开发人员无需为每条目标指令手工编写匹配逻辑，而只需在td文件中定义相应的指令树模式，TableGen工具即可自动生成完整的状态机代码。这一方式大幅降低了为目标架构实现指令选择器所需的编码工作量。当目标架构需要新增指令支持时，只需在描述文件中补充对应的指令树模式并重新生成状态机，无需触及或修改编译器的核心逻辑，从而有效维护了指令选择框架的整体稳定性与长期可维护性。从运行效率角度看，该状态机采用确定性的有限状态转移机制，在匹配过程中无需对所有可能的指令模式进行穷举式搜索。相比于基于手动遍历或回溯试探的传统匹配方法，这一机制能够显著提升指令选择的执行效率。
+基于DFA构建的指令匹配状态机，其在指令选择阶段的核心优势主要体现在自动化生成与可扩展性两个方面。开发人员无需为每条目标指令手动编写匹配代码，仅需在.td文件中声明相应的指令树模式，TableGen工具即可自动生成完整、正确的状态机实现。这一方式显著减少了为目标架构开发指令选择器所需的实现工作量。
+
+\par
+
+当目标架构需要新增指令支持时，仅需在描述文件中补充对应的树模式定义并重新生成状态机，无需修改编译器核心代码，从而在保持指令选择框架整体稳定性的同时，极大地提升了系统的可维护性与可扩展性。从运行效率角度分析，该状态机采用确定性的状态转移机制，在匹配过程中无需对所有可能的指令模式进行穷举搜索。相比基于手动遍历或回溯试探的传统匹配方法，这种机制能够有效提升指令选择环节的执行效率。
 
 
 % 2.5.2 机器指令选择方法
@@ -648,10 +653,6 @@ getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现�
 
 \subsubsection{2.手动匹配模块}
 尽管自动匹配模块能够覆盖大多数通用指令的选择需求，但在实际编译器工程实践中，部分目标架构特有的复杂指令的语义或操作数约束难以通过TableGen的树模式进行完整描述。针对这类场景，需要通过自定义C++代码实现精细化的指令匹配逻辑。
-
-\par
-
-手动匹配模块通常以内置固定树模式或显式条件判断的形式存在，通过逐条检查GMIR指令的操作码、操作数类型及寄存器约束，判定其是否符合特定架构专属指令的语义特征。一旦匹配成功，即直接生成对应的目标指令。该模块作为自动匹配的补充机制，主要用于处理高度架构相关、对性能或硬件语义要求严格的指令场景，弥补纯表驱动匹配在表达能力上的不足。
 
 \par
 
@@ -704,10 +705,10 @@ getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现�
 
 \par
 
-为兼容SelectionDAGISel，GlobalISel对通用算术与逻辑指令直接复用既有指令模式，而对依赖SDNode的架构专属信息则重新建模，并通过GINodeEquiv显式建立GMIR操作码与ISD操作码的等价关系，实现指令模式的复用。以下示例展示了加法指令的映射。
+为兼容SelectionDAGISel，GlobalISel对通用算术与逻辑指令直接复用既有指令模式，而对依赖SDNode的架构专属信息则重新建模，并通过GINodeEquiv显式建立GMIR操作码与ISD操作码的等价关系，实现指令模式的复用。代码块\ref{lst:add_mapping}展示了加法指令的复用。
 
 \lstset{language=c++}
-\begin{lstlisting}
+\begin{lstlisting}[language=C++, caption={加法指令的复用}, label={lst:add_mapping}]
 	Class GINodeEquiv<Instruction i, SDNode node> {
 		Instruction I = i;
 		SDNode Node = node;
@@ -779,12 +780,8 @@ getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现�
 % 2.6 本章小结
 %*********************************************************************
 \section{本章小结}
-本章详细阐述了GlobalISel在DSP架构上的具体实现。通过对LLVM现有指令选择方案的对比分析，指出传统SelectionDAGISel在流程复杂度和维护成本方面的局限，以及FastISel在代码质量与指令覆盖能力上的不足，从而引出以GMIR为核心、以函数为粒度的新一代指令选择框架 GlobalISel。
+本章详细阐述了GlobalISel在DSP架构上的设计方法与具体实现。首先通过对现有指令选择方案的对比分析，指出传统SelectionDAGISel在流程复杂度和维护成本方面的局限，以及FastISel在代码质量与指令覆盖能力上的不足的问题，在此基础上提出将GlobalISel应用到DSP架构上的技术方案。
 
 \par
 
-在此基础上，本章依次介绍了GlobalISel各关键阶段在DSP后端中的实现方法：在GMIR生成阶段，通过定制ValueHandler适配DSP的ABI与数据类型约束；在合法化阶段，结合LegalizerInfo规则集与Custom处理机制确保指令语义落入硬件能力范围；在寄存器组选择阶段，针对多寄存器文件架构构建映射与代价模型；在机器指令选择阶段，采用TableGen自动匹配与手动匹配相结合的策略完成指令映射。
-
-\par
-
-通过上述阶段的协同实现，本章完成了从 LLVM IR 到 DSP 架构 MIR 的完整指令选择流程构建，为后续优化策略设计与性能评估奠定了工程基础。
+本章随后根据GlobalISel的核心执行流程，依次介绍了其在DSP后端中的具体实现方法：在GMIR生成阶段，通过定制ValueHandler适配DSP的ABI与数据类型约束；在合法化阶段，结合LegalizerInfo规则集与Custom处理机制确保指令语义落入硬件能力范围；在寄存器组选择阶段，针对多寄存器文件架构构建映射与代价模型；在机器指令选择阶段，采用TableGen自动匹配与手动匹配相结合的策略完成指令映射。
