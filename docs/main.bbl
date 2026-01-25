@@ -1,4 +1,4 @@
-\begin{thebibliography}{52}
+\begin{thebibliography}{55}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{#1}
 \expandafter\ifx\csname urlstyle\endcsname\relax\else
@@ -358,5 +358,25 @@ Proceedings of the LLVM Developers' Meeting.
 彭成寒, 李灵, 戴贤泽, 等.
 \newblock 深入理解LLVM代码生成\allowbreak[M].
 \newblock 北京: 机械工业出版社, 2024.
+
+\bibitem[Tamkun(2021)]{tamkun2021using}
+TAMKUN K.
+\newblock Using csmith to find compiler bugs\allowbreak[Z].
+\newblock 2021.
+
+\bibitem[Livinskii et~al.(2020)Livinskii, Babokin, and
+  Regehr]{livinskii2020random}
+LIVINSKII V, BABOKIN D, REGEHR J.
+\newblock Random testing for c and c++ compilers with yarpgen\allowbreak[J].
+\newblock Proceedings of the ACM on Programming Languages, 2020, 4\allowbreak
+  (OOPSLA): 1-25.
+
+\bibitem[Livinskii et~al.(2023)Livinskii, Babokin, and
+  Regehr]{livinskii2023fuzzing}
+LIVINSKII V, BABOKIN D, REGEHR J.
+\newblock Fuzzing loop optimizations in compilers for c++ and data-parallel
+  languages\allowbreak[J].
+\newblock Proceedings of the ACM on Programming Languages, 2023, 7\allowbreak
+  (PLDI): 1826-1847.
 
 \end{thebibliography}

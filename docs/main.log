@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  22 JAN 2026 20:09
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  23 JAN 2026 16:55
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1733,6 +1733,9 @@ File: pics/compile_flowchart.jpg Graphic file (type bmp)
 [2]
 
 [3]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
 
 [4]
 File: pics/llvm_architecture_diagram.png Graphic file (type bmp)
@@ -1822,10 +1825,13 @@ File: lstlang1.sty 2024/09/23 1.10c listings language file
 File: lstmisc.sty 2024/09/23 1.10c (Carsten Heinz)
 )
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 319.
+nput line 315.
 
 
 [22]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
 
 [23]
 
@@ -1840,6 +1846,9 @@ File: pics/mapping.png Graphic file (type bmp)
 
 
 [26]
+Underfull \vbox (badness 1466) has occurred while \output is active []
+
+
 
 [27]
 
@@ -2262,15 +2271,15 @@ LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/08/05>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 4DE31AF828685FC20A99B5ADE940CAEF;11218.
+(rerunfilecheck)             Checksum: C53508937427873BD28A54BCE4EF52A4;11218.
  ) 
 Here is how much of TeX's memory you used:
- 39550 strings out of 473832
- 823349 string characters out of 5733159
- 1627161 words of memory out of 5000000
- 61898 multiletter control sequences out of 15000+600000
+ 39560 strings out of 473832
+ 823595 string characters out of 5733159
+ 1630366 words of memory out of 5000000
+ 61908 multiletter control sequences out of 15000+600000
  567480 words of font info for 168 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 107i,18n,109p,2041b,3575s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 107i,18n,109p,2041b,2397s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
 Output written on main.pdf (111 pages).
