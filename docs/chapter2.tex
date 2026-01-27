@@ -1,21 +1,32 @@
 \chapter{面向DSP的全局指令选择实现}
-
-
-%*********************************************************************
-% 2.1 全局指令选择框架概述
-%*********************************************************************
-\section{全局指令选择框架概述}
 编译器后端指令选择阶段的工作是将LLVM IR（Intermediate Representation，中间表示）转换为目标架构MI（Machine Instruction，机器指令）。这一阶段所要解决的问题是在保持程序语义不变的基础上生成适用于目标架构的指令序列。这个过程对生成的目标代码质量、资源利用率以及编译器对各种复杂硬件架构的兼容性有很大影响，是连接前后端的重要纽带。
 
 \par
 
 随着处理器架构的不断发展以及LLVM编译器基础设施的不断成熟，指令选择的实现方式也在不断变化。出于不同应用场景及性能要求的考虑，LLVM演变出不同的指令选择实现方案，先后引入了快速指令选择、基于有向无环图的指令选择以及全局指令选择这3个指令选择实现技术路线。这3种指令选择方案在设计思路、适用性以及代码生成质量特点上各有侧重。
 
+\par
+
+LLVM编译器主要依赖基于有向无环图的指令选择方案来生成高质量代码，但其复杂的图变换流程与以基本块为限的优化范围，导致编译时间长、内存占用高，且难以维护。与此同时，面向调试的快速指令选择方案虽提升了编译速度，但其简化的匹配逻辑无法满足DSP应用对代码密度与指令级并行的严苛要求。这两种方案在适配指令集异构性强、硬件约束复杂的现代DSP处理器时，均显现出固有的局限性。
+
+\par
+
+为应对上述挑战，本章引入并实现了全局指令选择框架，旨在为DSP架构构建一个兼具编译效率、代码质量与架构适配灵活性的新型指令选择流程。GlobalISel采用一种更贴近机器指令的通用中间表示，并以函数为粒度进行全局性的指令选择与优化，这为充分挖掘DSP硬件特性、减少冗余指令和数据移动开销提供了新的可能。
+
+\par
+
+本章将系统阐述GlobalISel在DSP目标架构上的完整实现路径。首先，将对传统指令选择方案的原理与局限进行对比分析，以明晰技术演进脉络与选型依据。随后，将依据GlobalISel的核心流程，分阶段深入剖析其关键实现：GMIR生成负责完成语义转换与初步架构适配；指令合法化确保所有操作均落在硬件能力范围内；寄存器组选择优化寄存器文件映射以降低数据搬移成本；机器指令选择最终完成到目标指令的精确映射。
+
+
+%*********************************************************************
+% 2.1 全局指令选择框架概述
+%*********************************************************************
+\section{全局指令选择框架概述}
+
 
 % 2.1.1 传统指令选择方案及其局限性
 \subsection{传统指令选择方案及其局限性}
 在LLVM的早期发展阶段，指令选择的目标是保证LLVM IR能够正确、稳定地映射为目标架构支持的机器指令，并在开启优化选项时能生成质量较高的代码。为此LLVM采用了基于DAG的指令选择方案。该方案是LLVM长期以来的主流指令选择方案，也是高优化等级下的默认指令选择方案。该方案支持复杂架构指令集，能够处理X86、ARM以及RISCV等各种架构复杂的指令选择需求。
-
 
 \par
 
@@ -28,13 +39,12 @@
 	\label{fig:dag_flowchart}
 \end{figure}
 
-
 SelectionDAGISel的设计思路是将LLVM IR转换成DAG来表示指令间的数据流依赖关系，然后再通过模式匹配和树覆盖的方法来将DAG内的节点转换为目标架构的机器指令。SelectionDAGISel的执行过程分为三个阶段：第一阶段，框架将LLVM IR指令序列转为SelectionDAG。在DAG图中每个节点表示一种操作，边表示数据依赖，能直观地看到指令之间的数据流依赖关系，不再需要对指令进行线性的扫描；第二阶段，为了简化后续的匹配流程，框架对SelectionDAG进行标准化操作及优化；第三阶段，框架采用基于TableGen自动生成的模式匹配器，对优化后的SelectionDAG进行拓扑排序，通过自底向上遍历节点来匹配目标架构在.td文件中定义的DAG模式，之后将匹配成功的节点替换为对应的机器指令，最终生成目标架构的机器代码。图\ref{fig:dag_example}展示了一个简单自增运算函数在指令选择阶段生成、调度之前的部分SelectionDAG图。
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.8\textwidth]{pics/dag_example.pdf}
-	\caption{自增运算函数在指令选择阶段生成的部分SelectionDAG图示例}
+	\caption{自增运算函数部分SelectionDAG图示例}
 	\label{fig:dag_example}
 \end{figure}
 
@@ -484,7 +494,7 @@ ValueMapping由一个或多个PartialMapping组合而成，用于描述单个操
 
 \par
 
-在最上层，InstructionMapping的作用是对一条指令的所有操作数映射进行统一建模，不仅包含每个操作数对应的ValueMapping，还关联了该指令整体映射方案的代价值。以图\ref{fig:mapping}中指令为例，G\_ADD、G\_ICMP以及VADD等指令均可生成各自的InstructionMapping，其总代价由各操作数映射代价综合决定。寄存器组选择阶段将基于这些代价信息，在满足指令硬性约束的前提下选择最优映射方案。
+InstructionMapping的作用是对一条指令的所有操作数映射进行统一建模，不仅包含每个操作数对应的ValueMapping，还关联了该指令整体映射方案的代价值。以图\ref{fig:mapping}中指令为例，G\_ADD、G\_ICMP以及VADD等指令均可生成各自的InstructionMapping，其总代价由各操作数映射代价综合决定。寄存器组选择阶段将基于这些代价信息，在满足指令硬性约束的前提下选择最优映射方案。
 
 \par
 
@@ -492,7 +502,7 @@ ValueMapping由一个或多个PartialMapping组合而成，用于描述单个操
 
 \par
 
-在LLVM的RegisterBankInfo实现中，PartialMapping、ValueMapping等结构通常以静态表的方式定义，用于描述不同位宽、不同操作数类型在目标架构下的寄存器组映射规则。代码\ref{lst:mapping_def}给出了DSP目标架构中PartialMapping与ValueMapping的典型定义方式，其中PartialMapping用于描述操作数比特区间到寄存器组的基础映射，而ValueMapping则通过组合一个或多个PartialMapping，形成对单个操作数的完整寄存器组映射描述。
+在LLVM的RegisterBankInfo实现中，PartialMapping、ValueMapping等结构通常以静态表的方式定义，用于描述不同位宽、不同操作数类型在目标架构下的寄存器组映射规则。代码\ref{lst:mapping_def}给出了DSP目标架构中PartialMapping与ValueMapping的典型定义方式。
 
 \lstset{language=c++}
 \begin{lstlisting}[language=C++, caption={DSP架构下各Mapping定义}, label={lst:mapping_def}]
@@ -518,14 +528,6 @@ ValueMapping由一个或多个PartialMapping组合而成，用于描述单个操
 
 \subsubsection{3.映射逻辑的实现}
 寄存器组选择的核心实现通过重载RegisterBankInfo类中的相关接口完成，其中最核心的是getInstrMapping与getInstrAlternativeMapping两个函数。前者负责为每条指令生成默认的寄存器组映射方案，后者则用于在默认映射不适用或存在更优分配时，提供备选的寄存器组映射方案，从而支持更灵活、更高效的寄存器资源分配策略。
-
-\par
-
-getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现采用以规则驱动为核心的寄存器组映射构建流程。该流程首先以指令操作码为入口，对可直接由TableGen规则覆盖的场景进行快速判定。对于特殊指令，优先尝试使用TableGen自动生成的映射结果；一旦匹配成功，即可直接返回对应的InstructionMapping，从而避免后续不必要的分析与代价评估。
-
-\par
-
-当TableGen映射不可用时，算法进入基于操作数语义的通用映射阶段。此阶段以操作数为粒度，遍历指令中的所有寄存器操作数，并依据其LLT进行映射决策。在完成默认映射后，算法进一步结合指令语义对映射结果进行修正。最终，算法基于上述映射规则构建并返回完整的InstructionMapping。
 
 \begin{algorithm}[htbp]
 	\SetAlgoLined
@@ -572,6 +574,12 @@ getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现�
 	\BlankLine
 	Construct and return the final InstructionMapping from OpdsMapping\;
 \end{algorithm}
+
+getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现采用以规则驱动为核心的寄存器组映射构建流程。该流程首先以指令操作码为入口，对可直接由TableGen规则覆盖的场景进行快速判定。对于特殊指令，优先尝试使用TableGen自动生成的映射结果；一旦匹配成功，即可直接返回对应的InstructionMapping，从而避免后续不必要的分析与代价评估。
+
+\par
+
+当TableGen映射不可用时，算法进入基于操作数语义的通用映射阶段。此阶段以操作数为粒度，遍历指令中的所有寄存器操作数，并依据其LLT进行映射决策。在完成默认映射后，算法进一步结合指令语义对映射结果进行修正。最终，算法基于上述映射规则构建并返回完整的InstructionMapping。
 
 
 %*********************************************************************
@@ -682,7 +690,7 @@ getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现�
 	COPY指令仅承担数据搬运语义，不包含可匹配的运算结构，且可能涉及虚拟寄存器与物理寄存器之间或跨寄存器资源的数据复制，通常无法通过通用树模式完成映射，因此需要采用专门的选择逻辑。
 
 	\item 
-	依赖控制寄存器Condition位的指令，如BRCOND、ICMP、FCMP以及SELECT等，需在TableGen驱动的通用匹配流程之前进行提前处理。通过在指令选择阶段直接识别并生成符合目标架构条件码语义的指令序列，可以避免条件值经由普通数据路径再映射至控制寄存器所带来的冗余指令与数据搬移开销。
+	依赖控制寄存器条件位的指令，如BRCOND、ICMP以及FCMP等，需在TableGen驱动的通用匹配流程之前进行提前处理。通过在指令选择阶段直接识别并生成符合目标架构条件码语义的指令序列，可以避免条件值经由普通数据路径再映射至控制寄存器所带来的冗余指令与数据搬移开销。
 	
 \end{itemize}
 

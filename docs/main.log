@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  23 JAN 2026 16:55
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  27 JAN 2026 16:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1733,9 +1733,6 @@ File: pics/compile_flowchart.jpg Graphic file (type bmp)
 [2]
 
 [3]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
 
 [4]
 File: pics/llvm_architecture_diagram.png Graphic file (type bmp)
@@ -1750,15 +1747,29 @@ File: pics/llvm_architecture_diagram.png Graphic file (type bmp)
 
 [8]
 
-[9])
+[9]
 
-[10]
+[10])
+
+[11]
 \openout2 = `chapter2.aux'.
 
  (./chapter2.tex
+
+[12
+
+
+
+
+]
 第2章
 
-Overfull \hbox (4.91385pt too wide) in paragraph at lines 22--23
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+
+[13]
+Overfull \hbox (4.91385pt too wide) in paragraph at lines 33--34
 []\TU/FandolSong(0)/m/n/12.045 基 于 \TU/XITS(0)/m/n/12.045 DAG \TU/FandolSong(0)
 /m/n/12.045 的 指 令 选 择 方 案 通 过 将 基 本 块 内 的 \TU/XITS(0)/m/n/12.045 LLVM IR \TU/Fa
 ndolSong(0)/m/n/12.045 转 换 为 \TU/XITS(0)/m/n/12.045 SelectionDAG\TU/FandolSong(
@@ -1767,55 +1778,43 @@ ndolSong(0)/m/n/12.045 转 换 为 \TU/XITS(0)/m/n/12.045 SelectionDAG\TU/Fandol
 
 File: pics/dag_flowchart.png Graphic file (type bmp)
 <pics/dag_flowchart.png>
-
-
-[11
-
-
-
-
-]
 File: pics/dag_example.pdf Graphic file (type pdf)
 <use pics/dag_example.pdf>
 
 
-[12]
+[14]
 File: pics/fast_flowchart.png Graphic file (type bmp)
 <pics/fast_flowchart.png>
 
-Underfull \vbox (badness 1057) has occurred while \output is active []
-
-
-
-[13]
-File: pics/global_flowchart.png Graphic file (type bmp)
-<pics/global_flowchart.png>
-
-
-[14]
 
 [15]
 
 [16]
-File: pics/irtranslator_call.png Graphic file (type bmp)
-<pics/irtranslator_call.png>
+File: pics/global_flowchart.png Graphic file (type bmp)
+<pics/global_flowchart.png>
 
 
 [17]
+
+[18]
+
+[19]
+File: pics/irtranslator_call.png Graphic file (type bmp)
+<pics/irtranslator_call.png>
 File: pics/gmir_gen_flowchart.png Graphic file (type bmp)
 <pics/gmir_gen_flowchart.png>
 
 
-[18]
+[20]
 File: pics/valuehandler.png Graphic file (type bmp)
 <pics/valuehandler.png>
 
 
-[19]
+[21]
 
-[20]
+[22]
 
-[21] (c:/texlive/2025/texmf-dist/tex/latex/listings/lstlang1.sty
+[23] (c:/texlive/2025/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2024/09/23 1.10c listings language file
 )
 (c:/texlive/2025/texmf-dist/tex/latex/listings/lstlang1.sty
@@ -1825,126 +1824,116 @@ File: lstlang1.sty 2024/09/23 1.10c listings language file
 File: lstmisc.sty 2024/09/23 1.10c (Carsten Heinz)
 )
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 315.
+nput line 325.
 
-
-[22]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-
-[23]
 
 [24]
-File: pics/registerbankinfo_class.png Graphic file (type bmp)
-<pics/registerbankinfo_class.png>
-
 
 [25]
-File: pics/mapping.png Graphic file (type bmp)
-<pics/mapping.png>
-
 
 [26]
-Underfull \vbox (badness 1466) has occurred while \output is active []
-
+File: pics/registerbankinfo_class.png Graphic file (type bmp)
+<pics/registerbankinfo_class.png>
 
 
 [27]
 
 [28]
+File: pics/mapping.png Graphic file (type bmp)
+<pics/mapping.png>
+
 
 [29]
 
 [30]
 
 [31]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
 
 [32]
 
 [33]
 
 [34]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \vbox (badness 1194) has occurred while \output is active []
 
 
 
-[35])
+[35]
 
-[36]
+[36])
+
+[37]
+
+[38]
 \openout2 = `chapter3.aux'.
 
  (./chapter3.tex
 第3章
 
 
-[37
+[39
 
 
 
 
 ]
-Overfull \hbox (2.23468pt too wide) in paragraph at lines 30--31
+Overfull \hbox (2.23468pt too wide) in paragraph at lines 53--54
 []\TU/FandolSong(0)/m/n/12.045 硬 件 特 性 适 配 的 滞 后 性：|  机 器 指 令 选 择 阶 段 的 主 要 目 的
  是 完 成 从 通 用 \TU/XITS(0)/m/n/12.045 GMIR
  []
 
 
-Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 51.
-See the caption package documentation for explanation.
-
-
-Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 61.
-See the caption package documentation for explanation.
-
-
-
-[38]
-
-[39]
-File: pics/combiner.png Graphic file (type bmp)
-<pics/combiner.png>
-
 
 [40]
 
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 74.
+See the caption package documentation for explanation.
+
+
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 84.
+See the caption package documentation for explanation.
+
+
+
 [41]
+Underfull \vbox (badness 5203) has occurred while \output is active []
+
+
 
 [42]
+File: pics/combiner.png Graphic file (type bmp)
+<pics/combiner.png>
+
 
 [43]
 
 [44]
 
-Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 271.
-See the caption package documentation for explanation.
-
-
-Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 280.
-See the caption package documentation for explanation.
-
-
-
 [45]
 
 [46]
 
-Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 383.
-See the caption package documentation for explanation.
-
-
-Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 390.
-See the caption package documentation for explanation.
-
-
-
 [47]
+
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 294.
+See the caption package documentation for explanation.
+
+
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 303.
+See the caption package documentation for explanation.
+
+
+
+[48]
+
+[49]
 
 Package caption Warning: The type was already set to `figure'
 (caption)                 on input line 405.
@@ -1957,144 +1946,155 @@ See the caption package documentation for explanation.
 
 
 
-[48]
+[50]
 
-[49]
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 427.
+See the caption package documentation for explanation.
 
-[50])
+
+Package caption Warning: The type was already set to `figure'
+(caption)                 on input line 434.
+See the caption package documentation for explanation.
+
+
 
 [51]
+
+[52]
+
+[53])
+
+[54]
 \openout2 = `chapter4.aux'.
 
  (./chapter4.tex
+第4章
 
-[52
+
+[55
 
 
 
 
 ]
-第4章
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-
-[53]
-
-[54]
-
-[55]
 
 [56]
-File: pics/system_flowchart.png Graphic file (type bmp)
-<pics/system_flowchart.png>
-
 
 [57]
 
 [58]
+File: pics/system_flowchart.png Graphic file (type bmp)
+<pics/system_flowchart.png>
+
 
 [59]
 
 [60]
 
 [61]
+
+[62]
+
+[63]
 File: pics/irnode_struct.png Graphic file (type bmp)
 <pics/irnode_struct.png>
 File: pics/yarpgen_class.png Graphic file (type bmp)
 <pics/yarpgen_class.png>
 
 
-[62]
-
-[63]
-
 [64]
-Overfull \hbox (2.0143pt too wide) in paragraph at lines 457--457
+Underfull \vbox (badness 5771) has occurred while \output is active []
+
+
+
+[65]
+
+[66]
+Overfull \hbox (2.0143pt too wide) in paragraph at lines 461--461
 []|\TU/XITS(0)/m/n/9.03374 getOptLevelOptions|  
  []
 
 
-Overfull \hbox (25.71881pt too wide) in paragraph at lines 457--457
+Overfull \hbox (25.71881pt too wide) in paragraph at lines 461--461
 []|\TU/XITS(0)/m/n/9.03374 getHistoricalStatisticalInfo|  
  []
 
 
-Overfull \hbox (4.90509pt too wide) in paragraph at lines 457--457
+Overfull \hbox (4.90509pt too wide) in paragraph at lines 461--461
 []|\TU/XITS(0)/m/n/9.03374 getLatestPerfOfSuite|  
  []
 
 
-Overfull \hbox (33.00002pt too wide) in paragraph at lines 457--457
+Overfull \hbox (33.00002pt too wide) in paragraph at lines 461--461
 []|\TU/XITS(0)/m/n/9.03374 getTwoCommitsComparison|  
  []
 
 
-Overfull \hbox (19.94626pt too wide) in paragraph at lines 457--457
+Overfull \hbox (19.94626pt too wide) in paragraph at lines 461--461
 []|\TU/XITS(0)/m/n/9.03374 getAssemblyComparison|  
  []
 
 
-Overfull \hbox (23.27971pt too wide) in paragraph at lines 457--457
+Overfull \hbox (23.27971pt too wide) in paragraph at lines 461--461
 []|\TU/XITS(0)/m/n/9.03374 removeAllCustomReports|  
  []
 
 
 
-[65]
+[67]
 File: pics/backend_impl.jpg Graphic file (type bmp)
 <pics/backend_impl.jpg>
 
 
-[66]
-Overfull \hbox (11.17825pt too wide) in paragraph at lines 518--518
+[68]
+Overfull \hbox (11.17825pt too wide) in paragraph at lines 522--522
 []|\TU/XITS(0)/m/n/9.03374 case_name|  
  []
 
 
-Overfull \hbox (9.40765pt too wide) in paragraph at lines 518--518
+Overfull \hbox (9.40765pt too wide) in paragraph at lines 522--522
 []|\TU/XITS(0)/m/n/9.03374 target_cpu|  
  []
 
 
-Overfull \hbox (4.77335pt too wide) in paragraph at lines 518--518
+Overfull \hbox (4.77335pt too wide) in paragraph at lines 522--522
 []|\TU/XITS(0)/m/n/9.03374 opt_level|  
  []
 
 
-Overfull \hbox (2.55104pt too wide) in paragraph at lines 518--518
+Overfull \hbox (2.55104pt too wide) in paragraph at lines 522--522
 []|\TU/XITS(0)/m/n/9.03374 platform|  
  []
 
 
-Overfull \hbox (1.08757pt too wide) in paragraph at lines 518--518
+Overfull \hbox (1.08757pt too wide) in paragraph at lines 522--522
 []|\TU/XITS(0)/m/n/9.03374 testsuite|  
  []
 
 
-Overfull \hbox (11.05179pt too wide) in paragraph at lines 518--518
+Overfull \hbox (11.05179pt too wide) in paragraph at lines 522--522
 []|\TU/XITS(0)/m/n/9.03374 cycle_num|  
  []
 
 
-Overfull \hbox (7.16728pt too wide) in paragraph at lines 518--518
+Overfull \hbox (7.16728pt too wide) in paragraph at lines 522--522
 []|\TU/XITS(0)/m/n/9.03374 code_size|  
  []
 
 
-Overfull \hbox (5.17082pt too wide) in paragraph at lines 518--518
+Overfull \hbox (5.17082pt too wide) in paragraph at lines 522--522
 []|\TU/XITS(0)/m/n/9.03374 bundle_x|  
  []
 
 )
 
-[67]
+[69]
 \openout2 = `chapter5.aux'.
 
  (./chapter5.tex
 
-[68
+[70
 
 
 
@@ -2103,54 +2103,54 @@ Overfull \hbox (5.17082pt too wide) in paragraph at lines 518--518
 第5章
 
 
-[69]
+[71]
 File: pics/case_1_gmir_gen_dump.png Graphic file (type bmp)
 <pics/case_1_gmir_gen_dump.png>
 File: pics/case_1_legalize_dump.png Graphic file (type bmp)
 <pics/case_1_legalize_dump.png>
 
 
-[70]
+[72]
 File: pics/case_1_regbank_select_dump.png Graphic file (type bmp)
 <pics/case_1_regbank_select_dump.png>
 
 
-[71]
+[73]
 File: pics/case_1_instr_select_dump.png Graphic file (type bmp)
 <pics/case_1_instr_select_dump.png>
 File: pics/case_1_final_dump.png Graphic file (type bmp)
 <pics/case_1_final_dump.png>
 
 
-[72]
+[74]
 
-[73]
+[75]
 File: pics/case_2_final_dump.png Graphic file (type bmp)
 <pics/case_2_final_dump.png>
 File: pics/case_2_final_dump_2.png Graphic file (type bmp)
 <pics/case_2_final_dump_2.png>
 
 
-[74]
+[76]
 
-[75]
+[77]
 File: pics/case_4_final_dump.png Graphic file (type bmp)
 <pics/case_4_final_dump.png>
 
 
-[76]
+[78]
 File: pics/case_5_before_dump.png Graphic file (type bmp)
 <pics/case_5_before_dump.png>
 File: pics/case_5_after_dump.png Graphic file (type bmp)
 <pics/case_5_after_dump.png>
 
 
-[77]
+[79]
 File: pics/pre_optimization_code_size.png Graphic file (type bmp)
 <pics/pre_optimization_code_size.png>
 
 
-[78]
+[80]
 File: pics/pre_optimization_cycle.png Graphic file (type bmp)
 <pics/pre_optimization_cycle.png>
 
@@ -2158,7 +2158,7 @@ Underfull \vbox (badness 4621) has occurred while \output is active []
 
 
 
-[79]
+[81]
 File: pics/case_6_before_dump.png Graphic file (type bmp)
 <pics/case_6_before_dump.png>
 File: pics/case_6_after_dump.png Graphic file (type bmp)
@@ -2168,39 +2168,39 @@ Underfull \vbox (badness 2689) has occurred while \output is active []
 
 
 
-[80]
+[82]
 File: pics/post_optimization_code_size.png Graphic file (type bmp)
 <pics/post_optimization_code_size.png>
 
 
-[81]
+[83]
 File: pics/post_optimization_cycle.png Graphic file (type bmp)
 <pics/post_optimization_cycle.png>
 
 
-[82]
+[84]
 File: pics/size_contrast.png Graphic file (type bmp)
 <pics/size_contrast.png>
 
 
-[83]
+[85]
 File: pics/cycle_contrast.png Graphic file (type bmp)
 <pics/cycle_contrast.png>
 
 
-[84]
+[86]
 File: pics/compile_time_example.png Graphic file (type bmp)
 <pics/compile_time_example.png>
 
 
-[85]
+[87]
 File: pics/compile_time_contrast.png Graphic file (type bmp)
 <pics/compile_time_contrast.png>
 
 
-[86]
+[88]
 
-[87]
+[89]
 File: pics/summary.png Graphic file (type bmp)
 <pics/summary.png>
 File: pics/history.png Graphic file (type bmp)
@@ -2209,14 +2209,14 @@ File: pics/compare.png Graphic file (type bmp)
 <pics/compare.png>
 
 
-[88]
+[90]
 
-[89]
+[91]
 File: pics/custom.png Graphic file (type bmp)
 <pics/custom.png>
 )
 
-[90]
+[92]
 \openout2 = `chapter6.aux'.
 
  (./chapter6.tex
@@ -2226,31 +2226,31 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-[91
+[93
 
 
 
 
 ])
 
-[92] (./main.bbl
+[94] (./main.bbl
 
-[93
+[95
 
 
 
 
 ]
 
-[94]
-
-[95]
-
-[96])
+[96]
 
 [97]
 
-[98
+[98])
+
+[99]
+
+[100
 
 ]
 \tf@thm=\write6
@@ -2258,28 +2258,28 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-[99]
+[101]
 
-[100
+[102
 
 ]
 
-[101] (./main.aux (./chapter1.aux) (./chapter2.aux) (./chapter3.aux)
+[103] (./main.aux (./chapter1.aux) (./chapter2.aux) (./chapter3.aux)
 (./chapter4.aux) (./chapter5.aux) (./chapter6.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/08/05>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: C53508937427873BD28A54BCE4EF52A4;11218.
+(rerunfilecheck)             Checksum: 87D1B913AAD219A31EBF2A51C5C4849C;11480.
  ) 
 Here is how much of TeX's memory you used:
- 39560 strings out of 473832
- 823595 string characters out of 5733159
- 1630366 words of memory out of 5000000
- 61908 multiletter control sequences out of 15000+600000
+ 39561 strings out of 473832
+ 823608 string characters out of 5733159
+ 1630276 words of memory out of 5000000
+ 61909 multiletter control sequences out of 15000+600000
  567480 words of font info for 168 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 107i,18n,109p,2041b,2397s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 107i,18n,109p,2041b,3575s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.pdf (111 pages).
+Output written on main.pdf (113 pages).

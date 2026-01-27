@@ -132,7 +132,7 @@
 	%
 	% info 类用于录入论文信息
 	info = {
-		title = {面向DSP平台的编译器全局指令选择的实现、优化及评估},
+		title = {面向DSP的编译器全局指令选择的实现、优化及评估},
 		% 中文标题
 		% 长标题建议使用 “\\” 命令手动换行（不是指在源文件里输入回车符，当然
 		% 源文件里适当的换行可以有助于代码清晰）：
@@ -140,7 +140,7 @@
 			%            犯罪嫌疑人、被告人逃匿、死亡案件违法所得\\
 			%            没收程序若干问题的规定},
 		%
-		title* = {Implementation, Optimization and Evaluation of Global Instruction Selection for DSP Platform Compilers},
+		title* = {Implementation, Optimization and Evaluation of Global Instruction Selection for DSP Compilers},
 		% 英文标题
 		%
 		author = {周星宇},
@@ -282,27 +282,27 @@
 	\tableofcontents
 	
 	\begin{abstract}
-	随着DSP架构复杂度的不断提高，编译器后端在指令选择阶段面临着更高的性能与工程化要求。GlobalISel作为新一代指令选择框架，相较于传统基于DAG的指令选择机制，无论是在可扩展性上还是在编译效率上都具有优势，为此本文针对DSP架构的硬件及指令集特性，设计并实现了基于GlobalISel的指令选择优化方案。
+	随着DSP架构复杂度的不断提高，编译器后端在指令选择阶段面临着更高的性能与工程化要求。传统基于DAG的指令选择机制在可扩展性、跨基本块优化能力上存在局限，且现有测试体系存在覆盖不全、性能分析薄弱的问题。为此，本文针对DSP架构的硬件及指令集特性，通过定制化实现GlobalISel指令选择框架、设计分阶段指令优化策略、构建全流程性能测试评估平台三个核心环节，形成一套覆盖框架适配、性能优化与效果验证的完整技术方案。
 	
-	在GlobalISel的实现中，对GlobalISel的整体框架及其关键阶段进行分析，结合DSP架构特性，完成了GMIR生成、指令合法化、寄存器组选择和机器指令选择等核心流程在DSP后端中的实现，并验证了其功能正确性。
+	首先，针对传统基于DAG的指令选择方案的拓展性差和跨基本块优化能力不足的问题，本文深入分析了GlobalISel框架核心流程，结合DSP硬件及指令集特性，定制化实现GMIR生成、指令合法化、寄存器组选择和机器指令选择等核心流程，构建适配DSP的GlobalISel指令选择基础框架并验证功能正确性。
 	
-	针对GlobalISel在指令选择不同阶段产生的冗余指令及性能瓶颈，本文设计并实现了多种指令选择优化策略，主要包括内存操作指令优化、常量乘法强度削弱优化以及冗余指令合并优化等，旨在提升生成代码的质量和执行效率。
+	其次，针对GlobalISel在通用语义转换过程中产生的问题，本文设计并实现了分阶段指令选择优化策略，主要包括内存操作指令优化、常量乘法强度削弱优化以及冗余指令合并优化等，全面提升了生成代码的执行效率与存储密度。
 	
-	为应对现有测试体系的不足，本文设计并实现了一套面向DSP编译器的性能测试与评估平台。平台引入随机测试生成技术，对YARPGen进行面向DSP架构的定制化扩展，构建了一套能够覆盖指令选择及后端优化关键场景的随机测试输入集合。同时平台集成了性能数据的自动化采集、跨版本对比分析及可视化呈现等功能，为编译器优化策略的效果评估与迭代分析提供了系统化支持。
+	再次，为应对现有测试体系的不足的问题，本文设计并实现了一套面向DSP编译器的性能测试与评估平台。平台引入随机测试生成技术，对YARPGen进行针对DSP架构的定制化扩展，构建了一套覆盖指令选择及后端优化关键场景的随机测试输入集合。同时平台集成了性能数据的自动化采集、跨版本对比分析及可视化呈现等功能，为编译器优化策略的效果评估与迭代分析提供了系统化支持。
 	
-	实验结果表明，与传统指令选择方案相比，GlobalISel在编译时间上展现出一定的效率优势。在集成针对DSP架构的专项优化之后，生成代码在体积与执行周期等关键性能指标上均取得了可观的提升，这进一步印证了GlobalISel框架在DSP目标平台上具备显著的优化潜力。
+	最后，经核心功能验证、优化有效性评估及综合性能对比实验验证，本文实现的面向DSP的GlobalISel框架，较传统DAG方案编译效率优势显著；集成分阶段优化后，有效缩减了生成代码体积、降低了程序执行周期，验证了优化有效性。除此之外，测试评估平台为成果验证提供系统化支撑，印证了GlobalISel在DSP平台的优化潜力与工程价值。
 	\end{abstract}
 	
 	\begin{abstract*}
-	As the complexity of the DSP architecture continues to increase, the compiler back-end is facing higher performance and engineering requirements in the instruction selection stage. GlobalISel, as a new generation instruction selection framework, has advantages over the traditional instruction selection mechanism based on DAG, both in scalability and compilation efficiency. Therefore, this paper designs and implements an instruction selection optimization scheme based on GlobalISel, targeting the hardware and instruction set characteristics of the DSP architecture. 
+	With the continuous increase in the complexity of DSP architectures, the compiler back-end is facing higher performance and engineering requirements in the instruction selection stage. The traditional instruction selection mechanism based on DAG has limitations in scalability and cross-block optimization capabilities, and the existing testing system has problems of incomplete coverage and weak performance analysis. Therefore, this paper, based on the hardware and instruction set characteristics of DSP architectures, through customized implementation of the GlobalISel instruction selection framework, design of phased instruction optimization strategies, and construction of a full-process performance testing and evaluation platform in three core links, forms a complete technical solution covering framework adaptation, performance optimization and effect verification. 
 	
-	In the implementation of GlobalISel, an analysis was conducted on the overall framework and key stages of GlobalISel, and in combination with the characteristics of the DSP architecture, the core processes such as GMIR generation, instruction legalization, register group selection, and machine instruction selection were implemented in the DSP backend, and their functional correctness was verified. 
+	Firstly, in response to the problems of poor scalability and insufficient cross-block optimization capabilities of the traditional DAG-based instruction selection scheme, this paper deeply analyzed the core process of the GlobalISel framework. By combining the characteristics of DSP hardware and instruction set, it customized the implementation of core processes such as GMIR generation, instruction legalization, register group selection, and machine instruction selection, and constructed a GlobalISel instruction selection basic framework suitable for DSP and verified the correctness of the functions. 
+
+	Secondly, in response to the problems arising during the general semantic transformation process of GlobalISel, this paper designs and implements a phased instruction selection optimization strategy, which mainly includes memory operation instruction optimization, constant multiplication strength reduction optimization, and redundant instruction merging optimization, etc. This has comprehensively improved the execution efficiency and storage density of the generated code. 
+
+	Furthermore, to address the shortcomings of the existing testing system, this paper designs and implements a performance testing and evaluation platform specifically for DSP compilers. The platform incorporates random test generation technology, customizes YARPGen for the DSP architecture, and constructs a set of random test input collections covering key scenarios of instruction selection and backend optimization. At the same time, the platform integrates functions such as automatic collection of performance data, cross-version comparison analysis, and visual presentation, providing systematic support for the evaluation and iterative analysis of the compiler's optimization strategies. 
 	
-	In response to the redundant instructions and performance bottlenecks generated by GlobalISel at different stages of instruction selection, this paper designs and implements multiple instruction selection optimization strategies, including memory operation instruction optimization, constant multiplication strength reduction optimization, and redundant instruction merging optimization, aiming to improve the quality of generated code and execution efficiency. 
-	
-	To address the shortcomings of the existing testing system, this paper designs and implements a performance testing and evaluation platform for DSP compilers. The platform incorporates random test generation technology, customizes YARPGen for the DSP architecture, and constructs a set of random test input collections that can cover key scenarios of instruction selection and backend optimization. At the same time, the platform integrates functions such as automatic collection of performance data, cross-version comparison analysis, and visual presentation, providing systematic support for the evaluation and iterative analysis of the compiler's optimization strategies.
-	
-	The experimental results show that, compared with the traditional instruction selection scheme, GlobalISel demonstrates certain efficiency advantages in the compilation time. After integrating specialized optimizations for the DSP architecture, the generated code has achieved considerable improvements in key performance indicators such as size and execution cycle, which further confirms the significant optimization potential of the GlobalISel framework on the DSP target platform.
+	Finally, after core function verification, effectiveness evaluation of optimization, and comprehensive performance comparison experiments, the GlobalISel framework implemented in this paper for DSP has significant advantages in compilation efficiency compared to the traditional DAG scheme; after integrating staged optimization, it effectively reduces the size of generated code and lowers the program execution cycle, verifying the effectiveness of the optimization. In addition, the test evaluation platform provides systematic support for the verification of the results, confirming the optimization potential and engineering value of GlobalISel on the DSP platform.
 	\end{abstract*}
 	
 	% 主体部分是论文的核心

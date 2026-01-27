@@ -1,4 +1,5 @@
 \chapter{实验结果与性能分析}
+本章通过一系列系统性实验对本文研究内容展开全面验证与分析，依次验证GlobalISel在DSP后端生成代码的正确性、本文提出的GlobalISel分阶段优化策略的有效性，并开展其与传统指令选择方案的综合性能对比，最后展示测试评估平台的功能及应用效果。
 
 
 %*********************************************************************
@@ -9,31 +10,27 @@
 
 % 5.1.1 基本指令正确性验证
 \subsection{基本指令正确性验证}
-本节旨在验证DSP后端基本指令（除控制流指令及特殊指令之外的指令）的正确性，重点关注算术运算指令和内存访问指令的匹配和选择结果。为此本节设计了一个示例程序一，这个示例程序包含函数参数传递、内存读写操作和整数加法与乘法运算等操作，能够覆盖了DSP后端常见的指令选择路径。
-
-\par
-
-由于LLVM IR具有良好的目标无关性，且从C语言到LLVM IR的转换过程并非本文关注重点，本文在分析过程中省略前端生成IR的具体细节，直接展示从LLVM IR到目标机器码的转换流程，以突出指令选择与后端代码生成阶段的行为特征。
+本节旨在验证DSP后端基本指令的正确性，重点关注算术运算指令和内存访问指令的匹配和选择结果。为此本节设计了一个示例程序一，这个示例程序包含函数参数传递、内存读写操作和整数加法与乘法运算等操作，能够覆盖了DSP后端常见的指令选择路径。由于LLVM IR具有良好的目标无关性，且从C语言到LLVM IR的转换过程并非本文关注重点，因此本节及后续章节在分析过程中直接展示从LLVM IR到目标机器码的转换流程。
 
 
 \subsubsection{1.LLVM IR输入}
-示例程序一的LLVM IR如代码块\ref{lst:case_1_ir}所示，该示例程序包含了基本的算术与访存操作，后文将以此为基础分析指令选择过程中中间表示的演化。为了便于展示，已去除掉代码中的调试信息。
+示例程序一的LLVM IR如代码块\ref{lst:case_1_ir}所示，该示例程序包含了基本的算术与访存操作，后文将以此为基础分析指令选择过程中中间表示的演化。
 
 \lstset{language=c++}
 \begin{lstlisting}[language=C++, caption={示例程序一的LLVM IR表示}, label={lst:case_1_ir}]
-define dso_local i32 @testArith(i32 noundef %a, i32 noundef %b) {
-	entry:
-	%a.addr = alloca i32
-	%b.addr = alloca i32
-	store i32 %a, ptr %a.addr
-	store i32 %b, ptr %b.addr
-	%0 = load i32, ptr %a.addr
-	%1 = load i32, ptr %b.addr
-	%add = add i32 %0, %1
-	%2 = load i32, ptr %a.addr
-	%mul = mul i32 %add, %2
-	ret i32 %mul
-}
+	define dso_local i32 @testArith(i32 noundef %a, i32 noundef %b) {
+		entry:
+		%a.addr = alloca i32
+		%b.addr = alloca i32
+		store i32 %a, ptr %a.addr
+		store i32 %b, ptr %b.addr
+		%0 = load i32, ptr %a.addr
+		%1 = load i32, ptr %b.addr
+		%add = add i32 %0, %1
+		%2 = load i32, ptr %a.addr
+		%mul = mul i32 %add, %2
+		ret i32 %mul
+	}
 \end{lstlisting}
 
 

@@ -1,4 +1,27 @@
 \chapter{面向DSP的全局指令选择优化策略}
+与SelectionDAGISel相比，GlobalISel在性能潜力上存在先天局限。其根源在于两者的设计目标与底层模型存在本质差异。SelectionDAGISel的核心理念是针对特定硬件进行深度优化。它基于一个全局的、具有丰富语义信息的有向无环图模型，这使得编译器能够在整个函数的范围内进行详尽的指令选择与优化，从而在匹配复杂指令模式、优化调度和执行效率方面具有理论上的优势。换言之，它牺牲了部分编译速度和通用性，以换取为特定架构生成更优代码的潜力。
+
+\par
+
+反观GlobalISel，其首要设计目标是提升编译速度与增强跨平台可维护性。它采用一种更线性、增量式的处理模型，放弃了全局DAG所支持的综合性优化视角。这种通用化、模块化的设计使其在适配新架构时更加便捷，但也意味着它在进行指令选择时，天然缺乏进行全局性、深度窥孔优化的能力。因此，当其面对DSP这类对指令级效率和硬件特性匹配要求极高的专用架构时，这种通用性与性能最优之间的内在矛盾便被放大，直接导致了以下问题：
+
+\begin{enumerate}
+	\item
+	通用语义转换会将复杂运算拆分为原子指令，从而导致大量的冗余指令产生。
+	
+	\item
+	寄存器组分配以基本块为粒度，缺乏全局数据视角，造成了频繁的跨寄存器组数据传输开销
+	
+	\item 
+	硬件特性适配滞后，默认采用一对一的指令映射模式，难以有效识别并匹配DSP架构中复杂的专用指令语义模式。
+	
+\end{enumerate}
+
+为解决上述问题，本文基于GlobalISel框架，提出了一种分阶段协同优化方案，该方案分为合法化前的通用冗余消除与合法化后针对DSP架构的特定优化两个主要阶段，通过递进式优化兼顾通用中间表示的冗余消除与DSP硬件架构的特性适配。
+
+\par
+
+本章后续将详细阐述面向DSP的全局指令选择优化体系的整体设计思路，拆解分阶段优化策略的具体实现流程，并对其中涉及的关键技术细节进行深入剖析。
 
 
 %*********************************************************************
@@ -313,20 +336,19 @@ CSE在消除冗余指令、降低寄存器使用压力的同时，也为后续�
 \operatorname{ext}\!\bigl(\operatorname{op}(x, y)\bigr)
 \]
 
-其中，op表示算术操作ADD或SUB，ext表示扩展操作ZEXT或SEXT。值得注意的是，在变换过程中必须保证扩展类型的一致性，并在符号扩展场景下正确维护符号语义。在Combiner中，该优化通过参数化的TableGen规则进行描述。其核心定义如下：
+其中，op表示算术操作ADD或SUB，ext表示扩展操作ZEXT或SEXT。值得注意的是，在变换过程中必须保证扩展类型的一致性，并在符号扩展场景下正确维护符号语义。在Combiner中，该优化通过参数化的TableGen规则进行描述。其核心定义代码块\ref{lst:epo_tb}所示。
 
 \begin{lstlisting}[language=C++, caption={EPO的TableGen规则}, label={lst:epo_tb}]
 	class epo_base<Instruction opcode, Instruction extOpcode>
-	: GICombineRule <
-	(defs root:$root),
-	(match (extOpcode $ext1, $src1):$ExtMI,
-	(extOpcode $ext2, $src2),
-	(opcode $dst, $ext1, $ext2):$root,
-	[{ return matchEPO(*${root}, MRI, $dst, $src1, $src2); }]),
-	(apply [{
-		applyEPO(*${root}, MRI, B,
-		${ExtMI}->getOpcode() == TargetOpcode::G_SEXT, $dst, $src1, $src2);
-	}])
+			: GICombineRule <
+		(defs root:$root),
+		(match (extOpcode $ext1, $src1):$ExtMI, (extOpcode $ext2, $src2),
+			(opcode $dst, $ext1, $ext2):$root,
+			[{ return matchEPO(*${root}, MRI, $dst, $src1, $src2); }]),
+		(apply [{
+			applyEPO(*${root}, MRI, B,
+			${ExtMI}->getOpcode() == TargetOpcode::G_SEXT, $dst, $src1, $src2);
+		}])
 	>;
 \end{lstlisting}
 
@@ -375,21 +397,21 @@ EPO属于一种IR规范化类优化，并不以直接降低程序的运行时间
 
 
 \subsubsection{1.立即数的高16位全0}
-当立即数的高16位全为0时，立即数可视为一个零扩展的16位无符号数，只需要装载低16位即可。由于硬件指令集的限制，即使立即数的高16位全为0，也无法省略对高位赋值的操作。为此本节提出一种基于零寄存器的装载策略，通过设置一个零寄存器并将零寄存器作为源操作数，结合立即数加法指令来完成立即数的加载，从而避免了使用通用的长立即数装载伪指令。
+当立即数的高16位全为0时，立即数可视为一个零扩展的16位无符号数，只需要装载低16位即可。由于硬件指令集的限制，即使立即数的高16位全为0，也无法省略对高位赋值的操作。为此本节提出一种基于零寄存器的装载策略，通过设置一个零寄存器并将零寄存器作为源操作数，结合立即数加法指令来完成立即数的加载，从而避免了使用通用的长立即数装载伪指令，如代码块\ref{lst:imm_con1_before}和代码块\ref{lst:imm_con1_after}所示。
 
 \begin{figure}[htbp]
 	\centering
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
 		\begin{lstlisting}[language=C++, caption={CSE优化前}, label={lst:imm_con1_before}]
-	MOVIGH GR2 0x0;
-	MOVIGL GR2 0x1;
+			MOVIGH GR2 0x0;
+			MOVIGL GR2 0x1;
 		\end{lstlisting}
 	\end{minipage}\hfill
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
 		\begin{lstlisting}[language=C++, caption={CSE优化后}, label={lst:imm_con1_after}]
-	ADDI ZERO 0x1;
+			ADDI ZERO 0x1;
 			
 		\end{lstlisting}
 	\end{minipage}
@@ -397,22 +419,22 @@ EPO属于一种IR规范化类优化，并不以直接降低程序的运行时间
 
 
 \subsubsection{2.立即数的高17位全1}
-当立即数的高17位全为1，即为可用16位有符号立即数表示的常量时，可以利用MOVIGLX指令来实现将一个16位的有符号立即数进行符号位扩展至32bit后复制到rd中。于是当常量满足Imm∈\([-2^{15},\, 2^{15}-1]\)时，可将imm16符号扩展到32位写入Rd。
+当立即数的高17位全为1，即为可用16位有符号立即数表示的常量时，可以利用MOVIGLX指令来实现将一个16位的有符号立即数进行符号位扩展至32bit后复制到rd中。于是当常量满足Imm∈\([-2^{15},\, 2^{15}-1]\)时，可将imm16符号扩展到32位写入Rd，如代码块\ref{lst:imm_con2_before}和代码块\ref{lst:imm_con2_after}所示。
 
 \begin{figure}[htbp]
 	\centering
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
 		\begin{lstlisting}[language=C++, caption={CSE优化前}, label={lst:imm_con2_before}]
-	MOVIGH GR2 0xFFFF;
-	MOVIGL GR2 0xF123;
+			MOVIGH GR2 0xFFFF;
+			MOVIGL GR2 0xF123;
 		\end{lstlisting}
 	\end{minipage}\hfill
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
 		\begin{lstlisting}[language=C++, caption={CSE优化后}, label={lst:imm_con2_after}]
-	MOVIGLX GR2 0xF123;
-
+			MOVIGLX GR2 0xF123;
+			
 		\end{lstlisting}
 	\end{minipage}
 \end{figure}
@@ -463,7 +485,7 @@ EPO属于一种IR规范化类优化，并不以直接降低程序的运行时间
 
 \begin{enumerate}
 	\item
-	常量识别：通过常量传播与等价查询机制，判断右操作数是否为编译期常量，获取乘法右操作数的常量值。
+	常量识别：通过常量传播与等价查询机制，判断右操作数是否为编译期常量，若满足条件，则获取乘法右操作数的常量值。
 	
 	\item
 	位型分析：利用位运算分析常量的二进制结构，判断其是否满足上述形式。
@@ -518,7 +540,7 @@ EPO属于一种IR规范化类优化，并不以直接降低程序的运行时间
 
 
 \subsubsection{3.重写阶段}
-在重写阶段，编译器根据匹配到的常量形式，生成对应的移位与加减指令序列，并替换原有的G\_MUL指令。
+在重写阶段，编译器根据匹配到的常量形式，生成对应的移位与加减指令序列，并替换原有的G\_MUL指令。重写操作后，原本需多个周期完成的乘法操作被转换为仅由低延迟移位与加减指令组成的序列，在保持计算结果精确不变的前提下，显著降低了指令的执行开销，并减少了对专用乘法硬件单元的占用。
 
 
 %*********************************************************************
