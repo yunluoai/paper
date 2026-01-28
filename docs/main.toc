@@ -38,19 +38,19 @@
 \contentsline {subsubsection}{2.手动匹配模块}{34}{subsubsection*.24}%
 \contentsline {subsubsection}{3.指令生成模块}{35}{subsubsection*.25}%
 \contentsline {subsection}{\fdu@kai \numberline {2.5.3}机器指令选择实现}{35}{subsection.2.5.3}%
-\contentsline {subsubsection}{1.预处理}{35}{subsubsection*.26}%
-\contentsline {subsubsection}{2.特殊指令处理}{36}{subsubsection*.27}%
-\contentsline {subsubsection}{3.合法性校验}{36}{subsubsection*.28}%
-\contentsline {subsubsection}{4.自动匹配}{36}{subsubsection*.29}%
-\contentsline {subsubsection}{5.手动匹配}{37}{subsubsection*.30}%
-\contentsline {section}{\numberline {2.6}本章小结}{37}{section.2.6}%
+\contentsline {subsubsection}{1.预处理}{35}{subsubsection*.27}%
+\contentsline {subsubsection}{2.特殊指令处理}{37}{subsubsection*.28}%
+\contentsline {subsubsection}{3.合法性校验}{37}{subsubsection*.29}%
+\contentsline {subsubsection}{4.自动匹配}{37}{subsubsection*.30}%
+\contentsline {subsubsection}{5.手动匹配}{38}{subsubsection*.31}%
+\contentsline {section}{\numberline {2.6}本章小结}{38}{section.2.6}%
 \contentsline {chapter}{\normalfont \sffamily \numberline {第3章}面向DSP的全局指令选择优化策略}{39}{chapter.3}%
-\contentsline {section}{\numberline {3.1}优化策略分析与设计}{40}{section.3.1}%
+\contentsline {section}{\numberline {3.1}优化策略分析与设计}{39}{section.3.1}%
 \contentsline {subsection}{\fdu@kai \numberline {3.1.1}优化策略理论依据}{40}{subsection.3.1.1}%
 \contentsline {subsection}{\fdu@kai \numberline {3.1.2}关键优化技术分析}{41}{subsection.3.1.2}%
 \contentsline {subsubsection}{1.公共子表达式消除}{41}{subsubsection*.32}%
 \contentsline {subsubsection}{2.已知位分析}{42}{subsubsection*.36}%
-\contentsline {subsubsection}{3.合并优化}{43}{subsubsection*.37}%
+\contentsline {subsubsection}{3.合并优化}{42}{subsubsection*.37}%
 \contentsline {subsection}{\fdu@kai \numberline {3.1.3}面向DSP的优化设计}{43}{subsection.3.1.3}%
 \contentsline {section}{\numberline {3.2}合法化前优化策略}{45}{section.3.2}%
 \contentsline {subsection}{\fdu@kai \numberline {3.2.1}内存操作优化}{45}{subsection.3.2.1}%
@@ -58,15 +58,15 @@
 \contentsline {subsubsection}{1.冗余截断与比较指令优化}{46}{subsubsection*.40}%
 \contentsline {subsubsection}{2.拓展下推优化}{48}{subsubsection*.44}%
 \contentsline {section}{\numberline {3.3}合法化后优化策略}{49}{section.3.3}%
-\contentsline {subsection}{\fdu@kai \numberline {3.3.1}立即数装载优化}{50}{subsection.3.3.1}%
+\contentsline {subsection}{\fdu@kai \numberline {3.3.1}立即数装载优化}{49}{subsection.3.3.1}%
 \contentsline {subsubsection}{1.立即数的高16位全0}{50}{subsubsection*.45}%
-\contentsline {subsubsection}{2.立即数的高17位全1}{51}{subsubsection*.49}%
+\contentsline {subsubsection}{2.立即数的高17位全1}{50}{subsubsection*.49}%
 \contentsline {subsubsection}{3.其他情况}{51}{subsubsection*.53}%
 \contentsline {subsection}{\fdu@kai \numberline {3.3.2}乘法优化}{51}{subsection.3.3.2}%
 \contentsline {subsubsection}{1.理论基础}{51}{subsubsection*.54}%
 \contentsline {subsubsection}{2.匹配阶段}{52}{subsubsection*.55}%
 \contentsline {subsubsection}{3.重写阶段}{52}{subsubsection*.57}%
-\contentsline {section}{\numberline {3.4}本章小结}{54}{section.3.4}%
+\contentsline {section}{\numberline {3.4}本章小结}{52}{section.3.4}%
 \contentsline {chapter}{\normalfont \sffamily \numberline {第4章}测试评估平台设计与实现}{55}{chapter.4}%
 \contentsline {section}{\numberline {4.1}DSP编译器测试现状与改进}{55}{section.4.1}%
 \contentsline {subsection}{\fdu@kai \numberline {4.1.1}测试流程现状}{55}{subsection.4.1.1}%

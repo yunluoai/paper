@@ -11,11 +11,11 @@ LLVM编译器主要依赖基于有向无环图的指令选择方案来生成高�
 
 \par
 
-为应对上述挑战，本章引入并实现了全局指令选择框架，旨在为DSP架构构建一个兼具编译效率、代码质量与架构适配灵活性的新型指令选择流程。GlobalISel采用一种更贴近机器指令的通用中间表示，并以函数为粒度进行全局性的指令选择与优化，这为充分挖掘DSP硬件特性、减少冗余指令和数据移动开销提供了新的可能。
+为应对上述挑战，本章结合DSP的硬件与指令集特点，设计并实现了面向DSP的全局指令选择框架，旨在为DSP架构构建一个兼具编译效率、代码质量与架构适配灵活性的新型指令选择流程。GlobalISel采用一种更贴近机器指令的通用中间表示，并以函数为粒度进行全局性的指令选择与优化，这为充分挖掘DSP硬件特性、减少冗余指令和数据移动开销提供了新的可能。
 
 \par
 
-本章将系统阐述GlobalISel在DSP目标架构上的完整实现路径。首先，将对传统指令选择方案的原理与局限进行对比分析，以明晰技术演进脉络与选型依据。随后，将依据GlobalISel的核心流程，分阶段深入剖析其关键实现：GMIR生成负责完成语义转换与初步架构适配；指令合法化确保所有操作均落在硬件能力范围内；寄存器组选择优化寄存器文件映射以降低数据搬移成本；机器指令选择最终完成到目标指令的精确映射。
+本章将系统阐述GlobalISel在DSP目标架构上的完整实现路径。首先，将对传统指令选择方案的原理与局限进行对比分析，以明晰技术演进脉络与选型依据。随后，将依据GlobalISel的核心流程，分阶段深入剖析其关键实现：GMIR生成阶段负责完成语义转换与初步架构适配；指令合法化阶段确保所有操作均落在硬件能力范围内；寄存器组选择阶段负责优化寄存器文件映射以降低数据搬移成本；机器指令选择阶段最终完成到目标指令的精确映射。
 
 
 %*********************************************************************
@@ -110,7 +110,7 @@ GlobalISel的核心优势是全局性和灵活性。全局性体现在GlobalISel
 % 2.2 GMIR生成
 %*********************************************************************
 \section{GMIR生成}
-GMIR的生成是GlobalISel第一阶段的第一个Pass，也称为IRTranslator。IRTranslator阶段的任务是完成LLVM IR到GMIR的语义下沉与架构适配，核心是要完成寄存器处理、栈管理以及调用约定处理等操作。IRTranslator的实现以DSP目标平台的ABI（Application Binary Interface，应用二进制接口）约定、指令集特性及数据类型支持为核心依据，通过模块化的调用处理机制，确保函数调用、参数传递、返回值处理的正确性与高效性。
+GMIR的生成是GlobalISel第一阶段的第一个Pass，也称为IRTranslator。IRTranslator阶段的任务是完成LLVM IR到GMIR的语义下沉与架构适配，核心是要完成寄存器处理、栈管理以及调用约定处理等操作。IRTranslator的实现以目标平台的ABI（Application Binary Interface，应用二进制接口）约定、指令集特性及数据类型支持为核心依据，通过模块化的调用处理机制，确保函数调用、参数传递、返回值处理的正确性与高效性。
 
 
 % 2.2.1 通用机器表示
@@ -324,7 +324,7 @@ GMIR生成的执行过程是以函数为粒度进行的，与SelectionDAGISel是
 \lstset{language=c++}
 \begin{lstlisting}[language=C++, caption={DSP架构部分合法化规则集}, label={lst:legal_rules}]
 	DSPLegalizerInfo::DSPLegalizerInfo(const DSPSubtarget &ST)
-	: STI(ST), XLen(STI.getXLen()), SXLen(LLT::scalar(XLen)) { 
+			: STI(ST), XLen(STI.getXLen()), SXLen(LLT::scalar(XLen)) { 
 		const LLT S1 = LLT::scalar(1);
 		const LLT S8 = LLT::scalar(8);
 		const LLT S16 = LLT::scalar(16);
@@ -357,7 +357,7 @@ GMIR生成的执行过程是以函数为粒度进行的，与SelectionDAGISel是
 \lstset{language=c++}
 \begin{lstlisting}[language=C++, caption={VAStart合法化实现}, label={lst:va_legal_func}]
 	bool DSPLegalizerInfo::legalizeVAStart(MachineInstr &MI,
-	MachineIRBuilder &MIRBuilder) const {
+			MachineIRBuilder &MIRBuilder) const {
 		assert(MI.getOpcode() == TargetOpcode::G_VASTART);
 		MachineFunction *MF = MI.getParent()->getParent();
 		DSPMachineFunctionInfo *FuncInfo = MF->getInfo<DSPMachineFunctionInfo>();
@@ -674,6 +674,52 @@ getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现�
 \subsection{机器指令选择实现}
 机器指令选择阶段以单条GMIR指令为处理粒度，目标是在保证语义等价与约束一致的前提下，将通用中间表示逐条映射为符合DSP目标架构语义与资源约束的机器指令。其整体流程可概括为预处理、特殊指令处理、合法性校验、自动匹配以及手动匹配五个阶段，整体流程如算法\ref{alg:isel-core}所示。这种分段的设计能在保持指令选择流程清晰性的同时，也便于针对不同类别指令引入差异化的处理策略。下面对每个阶段的实现逻辑与设计要点进行详细说明。
 
+\begin{algorithm}[htbp]
+	\SetAlgoLined
+	\linespread{1}\selectfont
+	
+	\KwIn{MI: Machine Instruction}
+	\KwOut{Boolean: Instruction selection result}
+	\caption{Core Logic of Instruction Selector}
+	\label{alg:isel-core}
+	Initialize context objects for MI (MBB, MF, MRI, MIB)\;
+	Execute pre-selection lowering on MI\;
+	
+	\If{MI is a copy instruction}{
+		\Return Process copy instruction selection for MI\;
+	}
+	Get opcode (Opc) of MI\;
+	
+	\If{Opc is G\_PHI}{
+		Extract target register (DefReg) of PHI\;
+		Derive target register class (DefRC) of DefReg\;
+		\If{DefRC derivation fails}{
+			\Return false\;
+		}
+		\For{each operand in PHI instruction}{
+			\If{Operand cannot be constrained to DefRC}{
+				\Return false\;
+			}
+		}
+		Update PHI instruction descriptor\;
+		\Return Constrain DefReg to DefRC\;
+	}
+	
+	\If{MI has implicit operands not declared explicitly}{
+		\Return false\;
+	}
+	
+	\If{Opc is a condition-related generic instruction}{
+		\Return Apply condition-specific selection\;
+	}
+	\If{table-driven selectImpl succeeds}{\Return true\;}
+	
+	\If{Opc is a special-type generic instruction}{
+		\Return Apply special-type instruction selection\;
+	}
+	\Return false\;
+\end{algorithm}
+
 
 \subsubsection{1.预处理}
 为满足DSP目标架构的指令语义，在进入指令选择阶段前，需对部分通用指令执行前置Lowering，将其转换为更贴近底层硬件的等价形式。一个典型的场景是指针运算的处理：由于DSP架构没有专用的指针运算指令，指针通常以整型寄存器保存并参与运算，因此编译器需要将携带指针语义的通用指令转换为语义等价的整型运算指令，并同步更新结果寄存器的LLT，以确保后续的指令匹配、操作数约束检查等环节能够基于统一的、与硬件相符的类型系统进行。
@@ -727,52 +773,6 @@ getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现�
 \par
 
 这种设计确保了条件值的生成、传递与消费过程始终被约束在一条最小且确定的指令通路内。这不仅简化了指令选择的逻辑复杂度，减少了指令序列中不必要的数据复制操作，同时也有助于降低寄存器分配的压力与整体执行延迟。对于分支密集、条件判断频繁的程序代码而言，该优化能够显著提升最终生成代码的执行效率。
-
-\begin{algorithm}[htbp]
-	\SetAlgoLined
-	\linespread{1}\selectfont
-	
-	\KwIn{MI: Machine Instruction}
-	\KwOut{Boolean: Instruction selection result}
-	\caption{Core Logic of Instruction Selector}
-	\label{alg:isel-core}
-	Initialize context objects for MI (MBB, MF, MRI, MIB)\;
-	Execute pre-selection lowering on MI\;
-	
-	\If{MI is a copy instruction}{
-		\Return Process copy instruction selection for MI\;
-	}
-	Get opcode (Opc) of MI\;
-	
-	\If{Opc is G\_PHI}{
-		Extract target register (DefReg) of PHI\;
-		Derive target register class (DefRC) of DefReg\;
-		\If{DefRC derivation fails}{
-			\Return false\;
-		}
-		\For{each operand in PHI instruction}{
-			\If{Operand cannot be constrained to DefRC}{
-				\Return false\;
-			}
-		}
-		Update PHI instruction descriptor\;
-		\Return Constrain DefReg to DefRC\;
-	}
-	
-	\If{MI has implicit operands not declared explicitly}{
-		\Return false\;
-	}
-	
-	\If{Opc is a condition-related generic instruction}{
-		\Return Apply condition-specific selection\;
-	}
-	\If{table-driven selectImpl succeeds}{\Return true\;}
-	
-	\If{Opc is a special-type generic instruction}{
-		\Return Apply special-type instruction selection\;
-	}
-	\Return false\;
-\end{algorithm}
 
 
 %*********************************************************************
