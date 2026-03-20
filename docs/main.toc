@@ -11,11 +11,11 @@
 \contentsline {subsection}{\fdu@kai \numberline {1.2.2}指令选择研究现状}{7}{subsection.1.2.2}%
 \contentsline {section}{\numberline {1.3}论文研究内容和创新点}{9}{section.1.3}%
 \contentsline {subsection}{\fdu@kai \numberline {1.3.1}研究内容}{9}{subsection.1.3.1}%
-\contentsline {subsubsection}{1.GlobalISel框架在DSP架构上的适配与实现方法研究}{10}{subsubsection*.7}%
+\contentsline {subsubsection}{1.GlobalISel框架在DSP架构上的适配与实现方法研究}{9}{subsubsection*.7}%
 \contentsline {subsubsection}{2.面向GlobalISel流程的分阶段指令选择优化技术研究}{10}{subsubsection*.8}%
 \contentsline {subsubsection}{3.面向编译器后端优化的性能评估体系研究}{10}{subsubsection*.9}%
 \contentsline {subsection}{\fdu@kai \numberline {1.3.2}创新点凝练}{10}{subsection.1.3.2}%
-\contentsline {subsubsection}{1.提出了一种基于LLVM GlobalISel的VLIW DSP后端模块化适配方法}{11}{subsubsection*.10}%
+\contentsline {subsubsection}{1.提出了一种基于LLVM GlobalISel的VLIW DSP后端模块化适配方法}{10}{subsubsection*.10}%
 \contentsline {subsubsection}{2.设计了一套与合法化流程深度耦合的分阶段指令选择优化体系}{11}{subsubsection*.11}%
 \contentsline {subsubsection}{3.构建了一套集成随机测试与多维性能分析的自动化评估平台}{11}{subsubsection*.12}%
 \contentsline {section}{\numberline {1.4}论文组织结构}{11}{section.1.4}%
@@ -23,122 +23,122 @@
 \contentsline {section}{\numberline {2.1}全局指令选择框架概述}{14}{section.2.1}%
 \contentsline {subsection}{\fdu@kai \numberline {2.1.1}传统指令选择方案及其局限性}{14}{subsection.2.1.1}%
 \contentsline {subsection}{\fdu@kai \numberline {2.1.2}全局指令选择原理及框架设计}{16}{subsection.2.1.2}%
-\contentsline {section}{\numberline {2.2}GMIR生成}{17}{section.2.2}%
+\contentsline {section}{\numberline {2.2}GMIR生成}{18}{section.2.2}%
 \contentsline {subsection}{\fdu@kai \numberline {2.2.1}通用机器表示}{18}{subsection.2.2.1}%
-\contentsline {subsection}{\fdu@kai \numberline {2.2.2}GMIR生成方法}{19}{subsection.2.2.2}%
+\contentsline {subsection}{\fdu@kai \numberline {2.2.2}GMIR生成方法}{20}{subsection.2.2.2}%
 \contentsline {subsection}{\fdu@kai \numberline {2.2.3}GMIR生成实现}{21}{subsection.2.2.3}%
 \contentsline {section}{\numberline {2.3}指令合法化}{23}{section.2.3}%
-\contentsline {subsection}{\fdu@kai \numberline {2.3.1}指令合法化方法}{23}{subsection.2.3.1}%
-\contentsline {subsection}{\fdu@kai \numberline {2.3.2}指令合法化实现}{24}{subsection.2.3.2}%
+\contentsline {subsection}{\fdu@kai \numberline {2.3.1}指令合法化方法}{24}{subsection.2.3.1}%
+\contentsline {subsection}{\fdu@kai \numberline {2.3.2}指令合法化实现}{25}{subsection.2.3.2}%
 \contentsline {section}{\numberline {2.4}寄存器组选择}{26}{section.2.4}%
-\contentsline {subsection}{\fdu@kai \numberline {2.4.1}寄存器组}{26}{subsection.2.4.1}%
+\contentsline {subsection}{\fdu@kai \numberline {2.4.1}寄存器组}{27}{subsection.2.4.1}%
 \contentsline {subsection}{\fdu@kai \numberline {2.4.2}寄存器组选择方法}{27}{subsection.2.4.2}%
 \contentsline {subsection}{\fdu@kai \numberline {2.4.3}寄存器组选择实现}{28}{subsection.2.4.3}%
 \contentsline {subsubsection}{1.寄存器组的定义}{28}{subsubsection*.23}%
 \contentsline {subsubsection}{2.映射结构的定义}{29}{subsubsection*.25}%
 \contentsline {subsubsection}{3.映射逻辑的实现}{31}{subsubsection*.27}%
-\contentsline {section}{\numberline {2.5}机器指令选择}{32}{section.2.5}%
+\contentsline {section}{\numberline {2.5}机器指令选择}{33}{section.2.5}%
 \contentsline {subsection}{\fdu@kai \numberline {2.5.1}匹配状态机}{33}{subsection.2.5.1}%
-\contentsline {subsection}{\fdu@kai \numberline {2.5.2}机器指令选择方法}{34}{subsection.2.5.2}%
-\contentsline {subsubsection}{1.自动匹配模块}{34}{subsubsection*.29}%
-\contentsline {subsubsection}{2.手动匹配模块}{34}{subsubsection*.30}%
-\contentsline {subsubsection}{3.指令生成模块}{35}{subsubsection*.31}%
-\contentsline {subsection}{\fdu@kai \numberline {2.5.3}机器指令选择实现}{35}{subsection.2.5.3}%
-\contentsline {subsubsection}{1.预处理}{35}{subsubsection*.33}%
-\contentsline {subsubsection}{2.特殊指令处理}{37}{subsubsection*.34}%
-\contentsline {subsubsection}{3.合法性校验}{37}{subsubsection*.35}%
-\contentsline {subsubsection}{4.自动匹配}{37}{subsubsection*.36}%
+\contentsline {subsection}{\fdu@kai \numberline {2.5.2}机器指令选择方法}{35}{subsection.2.5.2}%
+\contentsline {subsubsection}{1.自动匹配模块}{35}{subsubsection*.29}%
+\contentsline {subsubsection}{2.手动匹配模块}{35}{subsubsection*.30}%
+\contentsline {subsubsection}{3.指令生成模块}{36}{subsubsection*.31}%
+\contentsline {subsection}{\fdu@kai \numberline {2.5.3}机器指令选择实现}{36}{subsection.2.5.3}%
+\contentsline {subsubsection}{1.预处理}{36}{subsubsection*.33}%
+\contentsline {subsubsection}{2.特殊指令处理}{36}{subsubsection*.34}%
+\contentsline {subsubsection}{3.合法性校验}{38}{subsubsection*.35}%
+\contentsline {subsubsection}{4.自动匹配}{38}{subsubsection*.36}%
 \contentsline {subsubsection}{5.手动匹配}{38}{subsubsection*.37}%
-\contentsline {section}{\numberline {2.6}本章小结}{38}{section.2.6}%
-\contentsline {chapter}{\normalfont \sffamily \numberline {第3章}面向DSP的全局指令选择优化策略}{39}{chapter.3}%
-\contentsline {section}{\numberline {3.1}优化策略分析与设计}{39}{section.3.1}%
-\contentsline {subsection}{\fdu@kai \numberline {3.1.1}优化策略理论依据}{40}{subsection.3.1.1}%
-\contentsline {subsection}{\fdu@kai \numberline {3.1.2}关键优化技术分析}{41}{subsection.3.1.2}%
-\contentsline {subsubsection}{1.公共子表达式消除}{41}{subsubsection*.38}%
-\contentsline {subsubsection}{2.已知位分析}{42}{subsubsection*.42}%
-\contentsline {subsubsection}{3.合并优化}{42}{subsubsection*.43}%
-\contentsline {subsection}{\fdu@kai \numberline {3.1.3}面向DSP的优化设计}{43}{subsection.3.1.3}%
-\contentsline {section}{\numberline {3.2}合法化前优化策略}{45}{section.3.2}%
-\contentsline {subsection}{\fdu@kai \numberline {3.2.1}内存操作优化}{45}{subsection.3.2.1}%
-\contentsline {subsection}{\fdu@kai \numberline {3.2.2}拓展截断优化}{46}{subsection.3.2.2}%
-\contentsline {subsubsection}{1.冗余截断与比较指令优化}{46}{subsubsection*.46}%
-\contentsline {subsubsection}{2.拓展下推优化}{48}{subsubsection*.50}%
-\contentsline {section}{\numberline {3.3}合法化后优化策略}{49}{section.3.3}%
-\contentsline {subsection}{\fdu@kai \numberline {3.3.1}立即数装载优化}{49}{subsection.3.3.1}%
-\contentsline {subsubsection}{1.立即数的高16位全0}{50}{subsubsection*.51}%
-\contentsline {subsubsection}{2.立即数的高17位全1}{50}{subsubsection*.55}%
-\contentsline {subsubsection}{3.其他情况}{50}{subsubsection*.59}%
-\contentsline {subsection}{\fdu@kai \numberline {3.3.2}乘法优化}{51}{subsection.3.3.2}%
-\contentsline {subsubsection}{1.理论基础}{51}{subsubsection*.60}%
-\contentsline {subsubsection}{2.匹配阶段}{52}{subsubsection*.61}%
-\contentsline {subsubsection}{3.重写阶段}{52}{subsubsection*.63}%
-\contentsline {section}{\numberline {3.4}本章小结}{52}{section.3.4}%
-\contentsline {chapter}{\normalfont \sffamily \numberline {第4章}测试评估平台设计与实现}{55}{chapter.4}%
-\contentsline {section}{\numberline {4.1}DSP编译器测试现状与改进}{55}{section.4.1}%
-\contentsline {subsection}{\fdu@kai \numberline {4.1.1}测试流程现状}{55}{subsection.4.1.1}%
-\contentsline {subsubsection}{1.测试集来源单一，场景覆盖局限于常见路径，缺乏随机化测试机制}{56}{subsubsection*.64}%
-\contentsline {subsubsection}{2.测试产物可读性与分析能力不足}{57}{subsubsection*.65}%
-\contentsline {subsection}{\fdu@kai \numberline {4.1.2}测试体系优化需求与技术路径}{57}{subsection.4.1.2}%
-\contentsline {subsection}{\fdu@kai \numberline {4.1.3}随机测试生成技术与生成器选型}{58}{subsection.4.1.3}%
-\contentsline {section}{\numberline {4.2}平台设计}{59}{section.4.2}%
-\contentsline {subsection}{\fdu@kai \numberline {4.2.1}平台整体设计}{59}{subsection.4.2.1}%
-\contentsline {subsection}{\fdu@kai \numberline {4.2.2}测试子系统设计}{60}{subsection.4.2.2}%
-\contentsline {subsection}{\fdu@kai \numberline {4.2.3}评估子系统设计}{61}{subsection.4.2.3}%
-\contentsline {section}{\numberline {4.3}平台实现}{62}{section.4.3}%
-\contentsline {subsection}{\fdu@kai \numberline {4.3.1}面向DSP的YARPGen实现}{62}{subsection.4.3.1}%
-\contentsline {subsubsection}{1.引入DSP专用调试头文件}{63}{subsubsection*.69}%
-\contentsline {subsubsection}{2.添加DSP专用调试输出逻辑}{63}{subsubsection*.70}%
-\contentsline {subsubsection}{3.引入目标架构选项与条件编译参数}{63}{subsubsection*.71}%
-\contentsline {subsubsection}{4.添加DSP架构的Intrinsic}{64}{subsubsection*.72}%
-\contentsline {subsection}{\fdu@kai \numberline {4.3.2}测试子系统实现}{64}{subsection.4.3.2}%
-\contentsline {subsubsection}{1.添加测量性能指标的支持}{66}{subsubsection*.75}%
-\contentsline {subsubsection}{2.重构测试脚本并添加YARPGen}{66}{subsubsection*.76}%
-\contentsline {subsection}{\fdu@kai \numberline {4.3.3}评估子系统实现}{67}{subsection.4.3.3}%
-\contentsline {subsubsection}{1.数据展示层的实现}{67}{subsubsection*.77}%
-\contentsline {subsubsection}{2.业务逻辑层的实现}{68}{subsubsection*.79}%
-\contentsline {subsubsection}{3.数据存储层的实现}{69}{subsubsection*.81}%
-\contentsline {section}{\numberline {4.4}本章小结}{69}{section.4.4}%
-\contentsline {chapter}{\normalfont \sffamily \numberline {第5章}实验结果与性能分析}{71}{chapter.5}%
-\contentsline {section}{\numberline {5.1}GlobalISel代码生成正确性验证}{71}{section.5.1}%
-\contentsline {subsection}{\fdu@kai \numberline {5.1.1}基本指令正确性验证}{71}{subsection.5.1.1}%
-\contentsline {subsubsection}{1.LLVM IR输入}{71}{subsubsection*.83}%
-\contentsline {subsubsection}{2.GMIR生成阶段}{72}{subsubsection*.84}%
-\contentsline {subsubsection}{3.合法化阶段}{72}{subsubsection*.86}%
-\contentsline {subsubsection}{4.寄存器组选择阶段}{73}{subsubsection*.88}%
-\contentsline {subsubsection}{5.机器指令选择阶段}{74}{subsubsection*.90}%
-\contentsline {subsubsection}{6.最终代码生成阶段}{74}{subsubsection*.92}%
-\contentsline {subsection}{\fdu@kai \numberline {5.1.2}控制流指令正确性验证}{74}{subsection.5.1.2}%
-\contentsline {subsubsection}{1.比较+分支+跳转指令}{74}{subsubsection*.94}%
-\contentsline {subsubsection}{2.函数调用指令}{77}{subsubsection*.97}%
-\contentsline {section}{\numberline {5.2}GlobalISel优化策略有效性验证}{78}{section.5.2}%
-\contentsline {subsection}{\fdu@kai \numberline {5.2.1}合法化前优化策略验证}{79}{subsection.5.2.1}%
-\contentsline {subsubsection}{1.典型样例验证}{79}{subsubsection*.99}%
-\contentsline {subsubsection}{2.系统性量化评估}{80}{subsubsection*.102}%
-\contentsline {subsection}{\fdu@kai \numberline {5.2.2}合法化后优化策略验证}{82}{subsection.5.2.2}%
-\contentsline {subsubsection}{1.典型样例验证}{82}{subsubsection*.105}%
-\contentsline {subsubsection}{2.系统性量化评估}{83}{subsubsection*.108}%
-\contentsline {section}{\numberline {5.3}GlobalISel综合性能对比分析}{84}{section.5.3}%
-\contentsline {subsection}{\fdu@kai \numberline {5.3.1}代码体积对比}{84}{subsection.5.3.1}%
-\contentsline {subsubsection}{1.实验设置与统计方法}{84}{subsubsection*.111}%
-\contentsline {subsubsection}{2.实验结果分析}{85}{subsubsection*.112}%
-\contentsline {subsubsection}{3.实验结论}{85}{subsubsection*.114}%
-\contentsline {subsection}{\fdu@kai \numberline {5.3.2}执行周期对比}{86}{subsection.5.3.2}%
-\contentsline {subsubsection}{1.实验设置与统计方法}{86}{subsubsection*.115}%
-\contentsline {subsubsection}{2.实验结果与分析}{86}{subsubsection*.116}%
-\contentsline {subsubsection}{3.实验结论}{87}{subsubsection*.118}%
-\contentsline {subsection}{\fdu@kai \numberline {5.3.3}编译时间对比}{87}{subsection.5.3.3}%
-\contentsline {subsubsection}{1.度量方法与相关指标说明}{87}{subsubsection*.119}%
-\contentsline {subsubsection}{2.实验设置与统计方法}{88}{subsubsection*.121}%
-\contentsline {subsubsection}{3.实验结果与分析}{89}{subsubsection*.122}%
-\contentsline {subsubsection}{4.实验结论}{89}{subsubsection*.124}%
-\contentsline {section}{\numberline {5.4}测试评估平台功能展示}{89}{section.5.4}%
-\contentsline {subsubsection}{1.全局性能趋势分析模块}{90}{subsubsection*.125}%
-\contentsline {subsubsection}{2.单测试用例性能演化分析模块}{90}{subsubsection*.127}%
-\contentsline {subsubsection}{3.跨版本性能差异对比分析模块}{90}{subsubsection*.130}%
-\contentsline {subsubsection}{4.本地性能测试报告上传模块}{92}{subsubsection*.131}%
-\contentsline {section}{\numberline {5.5}本章小结}{92}{section.5.5}%
-\contentsline {chapter}{\normalfont \sffamily \numberline {第6章}总结与展望}{93}{chapter.6}%
-\contentsline {section}{\numberline {6.1}论文总结}{93}{section.6.1}%
-\contentsline {section}{\numberline {6.2}论文展望}{93}{section.6.2}%
-\contentsline {chapter}{\normalfont \sffamily 参考文献}{95}{appendix*.133}%
-\contentsline {chapter}{\normalfont \sffamily 致谢}{101}{appendix*.134}%
+\contentsline {section}{\numberline {2.6}本章小结}{39}{section.2.6}%
+\contentsline {chapter}{\normalfont \sffamily \numberline {第3章}面向DSP的全局指令选择优化策略}{41}{chapter.3}%
+\contentsline {section}{\numberline {3.1}优化策略分析与设计}{41}{section.3.1}%
+\contentsline {subsection}{\fdu@kai \numberline {3.1.1}优化策略理论依据}{42}{subsection.3.1.1}%
+\contentsline {subsection}{\fdu@kai \numberline {3.1.2}关键优化技术分析}{43}{subsection.3.1.2}%
+\contentsline {subsubsection}{1.公共子表达式消除}{43}{subsubsection*.38}%
+\contentsline {subsubsection}{2.已知位分析}{44}{subsubsection*.42}%
+\contentsline {subsubsection}{3.合并优化}{44}{subsubsection*.43}%
+\contentsline {subsection}{\fdu@kai \numberline {3.1.3}面向DSP的优化设计}{45}{subsection.3.1.3}%
+\contentsline {section}{\numberline {3.2}合法化前优化策略}{47}{section.3.2}%
+\contentsline {subsection}{\fdu@kai \numberline {3.2.1}内存操作优化}{47}{subsection.3.2.1}%
+\contentsline {subsection}{\fdu@kai \numberline {3.2.2}拓展截断优化}{48}{subsection.3.2.2}%
+\contentsline {subsubsection}{1.冗余截断与比较指令优化}{48}{subsubsection*.46}%
+\contentsline {subsubsection}{2.拓展下推优化}{50}{subsubsection*.50}%
+\contentsline {section}{\numberline {3.3}合法化后优化策略}{51}{section.3.3}%
+\contentsline {subsection}{\fdu@kai \numberline {3.3.1}立即数装载优化}{51}{subsection.3.3.1}%
+\contentsline {subsubsection}{1.立即数的高16位全0}{52}{subsubsection*.51}%
+\contentsline {subsubsection}{2.立即数的高17位全1}{52}{subsubsection*.55}%
+\contentsline {subsubsection}{3.其他情况}{52}{subsubsection*.59}%
+\contentsline {subsection}{\fdu@kai \numberline {3.3.2}乘法优化}{53}{subsection.3.3.2}%
+\contentsline {subsubsection}{1.理论基础}{53}{subsubsection*.60}%
+\contentsline {subsubsection}{2.匹配阶段}{53}{subsubsection*.61}%
+\contentsline {subsubsection}{3.重写阶段}{55}{subsubsection*.63}%
+\contentsline {section}{\numberline {3.4}本章小结}{55}{section.3.4}%
+\contentsline {chapter}{\normalfont \sffamily \numberline {第4章}测试评估平台设计与实现}{57}{chapter.4}%
+\contentsline {section}{\numberline {4.1}DSP编译器测试现状与改进}{57}{section.4.1}%
+\contentsline {subsection}{\fdu@kai \numberline {4.1.1}测试流程现状}{57}{subsection.4.1.1}%
+\contentsline {subsubsection}{1.测试集来源单一，场景覆盖局限于常见路径，缺乏随机化测试机制}{58}{subsubsection*.64}%
+\contentsline {subsubsection}{2.测试产物可读性与分析能力不足}{59}{subsubsection*.65}%
+\contentsline {subsection}{\fdu@kai \numberline {4.1.2}测试体系优化需求与技术路径}{59}{subsection.4.1.2}%
+\contentsline {subsection}{\fdu@kai \numberline {4.1.3}随机测试生成技术与生成器选型}{60}{subsection.4.1.3}%
+\contentsline {section}{\numberline {4.2}平台设计}{61}{section.4.2}%
+\contentsline {subsection}{\fdu@kai \numberline {4.2.1}平台整体设计}{61}{subsection.4.2.1}%
+\contentsline {subsection}{\fdu@kai \numberline {4.2.2}测试子系统设计}{62}{subsection.4.2.2}%
+\contentsline {subsection}{\fdu@kai \numberline {4.2.3}评估子系统设计}{63}{subsection.4.2.3}%
+\contentsline {section}{\numberline {4.3}平台实现}{64}{section.4.3}%
+\contentsline {subsection}{\fdu@kai \numberline {4.3.1}面向DSP的YARPGen实现}{64}{subsection.4.3.1}%
+\contentsline {subsubsection}{1.引入DSP专用调试头文件}{65}{subsubsection*.69}%
+\contentsline {subsubsection}{2.添加DSP专用调试输出逻辑}{65}{subsubsection*.70}%
+\contentsline {subsubsection}{3.引入目标架构选项与条件编译参数}{65}{subsubsection*.71}%
+\contentsline {subsubsection}{4.添加DSP架构的Intrinsic}{66}{subsubsection*.72}%
+\contentsline {subsection}{\fdu@kai \numberline {4.3.2}测试子系统实现}{66}{subsection.4.3.2}%
+\contentsline {subsubsection}{1.添加测量性能指标的支持}{68}{subsubsection*.75}%
+\contentsline {subsubsection}{2.重构测试脚本并添加YARPGen}{68}{subsubsection*.76}%
+\contentsline {subsection}{\fdu@kai \numberline {4.3.3}评估子系统实现}{69}{subsection.4.3.3}%
+\contentsline {subsubsection}{1.数据展示层的实现}{69}{subsubsection*.77}%
+\contentsline {subsubsection}{2.业务逻辑层的实现}{70}{subsubsection*.79}%
+\contentsline {subsubsection}{3.数据存储层的实现}{71}{subsubsection*.81}%
+\contentsline {section}{\numberline {4.4}本章小结}{71}{section.4.4}%
+\contentsline {chapter}{\normalfont \sffamily \numberline {第5章}实验结果与性能分析}{73}{chapter.5}%
+\contentsline {section}{\numberline {5.1}GlobalISel代码生成正确性验证}{73}{section.5.1}%
+\contentsline {subsection}{\fdu@kai \numberline {5.1.1}基本指令正确性验证}{73}{subsection.5.1.1}%
+\contentsline {subsubsection}{1.LLVM IR输入}{73}{subsubsection*.83}%
+\contentsline {subsubsection}{2.GMIR生成阶段}{74}{subsubsection*.84}%
+\contentsline {subsubsection}{3.合法化阶段}{74}{subsubsection*.86}%
+\contentsline {subsubsection}{4.寄存器组选择阶段}{75}{subsubsection*.88}%
+\contentsline {subsubsection}{5.机器指令选择阶段}{76}{subsubsection*.90}%
+\contentsline {subsubsection}{6.最终代码生成阶段}{76}{subsubsection*.92}%
+\contentsline {subsection}{\fdu@kai \numberline {5.1.2}控制流指令正确性验证}{76}{subsection.5.1.2}%
+\contentsline {subsubsection}{1.比较+分支+跳转指令}{76}{subsubsection*.94}%
+\contentsline {subsubsection}{2.函数调用指令}{79}{subsubsection*.97}%
+\contentsline {section}{\numberline {5.2}GlobalISel优化策略有效性验证}{80}{section.5.2}%
+\contentsline {subsection}{\fdu@kai \numberline {5.2.1}合法化前优化策略验证}{80}{subsection.5.2.1}%
+\contentsline {subsubsection}{1.典型样例验证}{80}{subsubsection*.99}%
+\contentsline {subsubsection}{2.系统性量化评估}{82}{subsubsection*.102}%
+\contentsline {subsection}{\fdu@kai \numberline {5.2.2}合法化后优化策略验证}{83}{subsection.5.2.2}%
+\contentsline {subsubsection}{1.典型样例验证}{83}{subsubsection*.105}%
+\contentsline {subsubsection}{2.系统性量化评估}{85}{subsubsection*.108}%
+\contentsline {section}{\numberline {5.3}GlobalISel综合性能对比分析}{86}{section.5.3}%
+\contentsline {subsection}{\fdu@kai \numberline {5.3.1}代码体积对比}{86}{subsection.5.3.1}%
+\contentsline {subsubsection}{1.实验设置与统计方法}{86}{subsubsection*.111}%
+\contentsline {subsubsection}{2.实验结果分析}{87}{subsubsection*.112}%
+\contentsline {subsubsection}{3.实验结论}{87}{subsubsection*.114}%
+\contentsline {subsection}{\fdu@kai \numberline {5.3.2}执行周期对比}{88}{subsection.5.3.2}%
+\contentsline {subsubsection}{1.实验设置与统计方法}{88}{subsubsection*.115}%
+\contentsline {subsubsection}{2.实验结果与分析}{88}{subsubsection*.116}%
+\contentsline {subsubsection}{3.实验结论}{89}{subsubsection*.118}%
+\contentsline {subsection}{\fdu@kai \numberline {5.3.3}编译时间对比}{89}{subsection.5.3.3}%
+\contentsline {subsubsection}{1.度量方法与相关指标说明}{89}{subsubsection*.119}%
+\contentsline {subsubsection}{2.实验设置与统计方法}{90}{subsubsection*.121}%
+\contentsline {subsubsection}{3.实验结果与分析}{91}{subsubsection*.122}%
+\contentsline {subsubsection}{4.实验结论}{91}{subsubsection*.124}%
+\contentsline {section}{\numberline {5.4}测试评估平台功能展示}{91}{section.5.4}%
+\contentsline {subsubsection}{1.全局性能趋势分析模块}{92}{subsubsection*.125}%
+\contentsline {subsubsection}{2.单测试用例性能演化分析模块}{92}{subsubsection*.127}%
+\contentsline {subsubsection}{3.跨版本性能差异对比分析模块}{92}{subsubsection*.129}%
+\contentsline {subsubsection}{4.本地性能测试报告上传模块}{94}{subsubsection*.131}%
+\contentsline {section}{\numberline {5.5}本章小结}{94}{section.5.5}%
+\contentsline {chapter}{\normalfont \sffamily \numberline {第6章}总结与展望}{95}{chapter.6}%
+\contentsline {section}{\numberline {6.1}论文总结}{95}{section.6.1}%
+\contentsline {section}{\numberline {6.2}论文展望}{95}{section.6.2}%
+\contentsline {chapter}{\normalfont \sffamily 参考文献}{97}{appendix*.133}%
+\contentsline {chapter}{\normalfont \sffamily 致谢}{103}{appendix*.134}%

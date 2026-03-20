@@ -30,7 +30,7 @@ DSP是一种用于处理数字信号的微处理器，其原理是通过采样�
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.45\textwidth]{pics/compile_flowchart.jpg}
+	\includegraphics[width=0.42\textwidth]{pics/compile_flowchart.jpg}
 	\caption{编译器五阶段流程图}
 	\label{fig:compile_flowchart}
 \end{figure}
@@ -106,7 +106,7 @@ GCC作为第一个开源编译器，打破了传统的编译器技术格局，�
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1\textwidth]{pics/llvm_architecture_diagram.png}
+	\includegraphics[width=0.92\textwidth]{pics/llvm_architecture_diagram.png}
 	\caption{LLVM架构图}
 	\label{fig:llvm_architecture_diagram}
 \end{figure}
@@ -115,7 +115,7 @@ GCC作为第一个开源编译器，打破了传统的编译器技术格局，�
 
 \par
 
-随着国产芯片产业的快速发展，LLVM由于其开源、模块化程度高等特点，逐渐被引入到多种自主研发硬件平台的工具链建设中。围绕LLVM的相关研究与工程实践，国内学界和工业界主要关注如何结合国产处理器架构特点进行适配与优化，并在此基础上提升编译器对底层硬件算力的利用效率。刘玉等人\cite{刘玉2020基于}针对魂芯数字信号处理器的特殊架构，基于LLVM构建优化编译器，解决前代编译器代码质量低、硬件特性支持不足的问题。沈莉等人\cite{沈莉2023swllvm}针对我国自主研制的神威新一代超级计算机解决异构系统可编程性差、硬件算力释放不足的问题，基于LLVM定制开发优化编译器；吴忧\cite{吴忧2024}提出了基于启发式搜索的优化序列选择算法。
+随着国产芯片产业的快速发展，LLVM由于其开源、模块化程度高等特点，逐渐被引入到多种自主研发硬件平台的工具链建设中。国内围绕LLVM的研究与实践，多聚焦于挖掘国产处理器架构特性，通过深度适配与优化，提升编译器对硬件算力的转化效率。刘玉等人\cite{刘玉2020基于}针对魂芯数字信号处理器的特殊架构，基于LLVM构建优化编译器，解决前代编译器代码质量低、硬件特性支持不足的问题。沈莉等人\cite{沈莉2023swllvm}针对我国自主研制的神威新一代超级计算机解决异构系统可编程性差、硬件算力释放不足的问题，基于LLVM定制开发优化编译器；吴忧等人\cite{吴忧2024}则提出了基于启发式搜索的优化序列选择算法。
 
 
 % 1.2.2 指令选择研究现状
@@ -158,38 +158,27 @@ SelectionDAGISel是LLVM中应用最广泛的指令选择技术，自LLVM早期�
 
 \par
 
-GlobalISel最早是在LLVM开发者会议上被提出，其设计初衷是在于解决SelectionDAGISel在编译性能、可扩展性与复用性方面的痛点：SelectionDAGISel引入了专用中间表示并伴随较高的构建和合法化开销，而不同后端在DAG层的大量定制也导致维护成本上升\cite{Colombet2015GlobalISel}。
+GlobalISel最早是在LLVM开发者会议上被提出，其设计初衷是在于解决SelectionDAGISel在编译性能、可扩展性与复用性方面的痛点：SelectionDAGISel引入了专用中间表示并伴随较高的构建和合法化开销，而不同后端在DAG层的大量定制也导致维护成本上升\cite{Colombet2015GlobalISel}。除此之外，随着指令选择规则规模与复杂度增长，研究工作开始关注后端选择器相关的测试覆盖与缺陷发现，例如针对GlobalISel匹配表/选择路径的专门化测试与模糊测试。这些方向共同推动了指令选择从局部模式向可扩展、可验证、面向多目标优化的方向演进\cite{rong2024irfuzzer}。
 
 \par
 
-除此之外，随着指令选择规则规模与复杂度增长，研究工作开始关注后端选择器相关的测试覆盖与缺陷发现，例如针对GlobalISel匹配表/选择路径的专门化测试与模糊测试。这些方向共同推动了指令选择从局部模式向可扩展、可验证、面向多目标优化的方向演进\cite{rong2024irfuzzer}。
-
-
-2015年，苹果公司的Quentin Colombet提出：现有的指令选择框架SelectionDAGISel存在若干根本性局限，包括但不限于：编译速度缓慢、仅支持基本块级别的局部作用域、架构设计过于单一化等。多年来，开发者们投入了大量精力通过增加Target hooks和优化Pass来规避这些局限，但这些方案本身也带来了新的问题（如启发式算法精度不足、需提前预测指令选择器的执行行为等）与局限。他认为，当前已具备推出新一代指令选择框架GlobalISel的条件，该框架将从根源上解决上述问题，同时为提升代码生成质量创造新的可能\cite{Colombet2015GlobalISel}。次年，Quentin Colombet等人分享了GlobalISel在设计与实现层面取得的阶段性成果，同时明确后续仍需重点研发的技术方向\cite{Colombet2016GlobalISelDesign}。
+2015年，苹果公司的Quentin Colombet系统剖析了传统SelectionDAGISel框架的若干根本性局限，包括编译速度缓慢、仅支持基本块级别的局部作用域、架构设计过于单一化等问题。他指出，尽管开发者通过增加Target hooks和优化Pass等方式试图规避这些局限，但由此引发的启发式算法精度不足、需提前预测指令选择器执行行为等新问题，进一步加剧了框架的复杂性。在此基础上，Colombet提出推出新一代指令选择框架GlobalISel的构想，该框架旨在从根源上解决上述问题，同时为提升代码生成质量创造新的可能\cite{Colombet2015GlobalISel}。次年，Colombet等人分享了GlobalISel在设计与实现层面取得的阶段性成果，并明确了后续仍需重点研发的技术方向\cite{Colombet2016GlobalISelDesign}，为框架的持续演进奠定了理论基础。
 
 \par
 
-2017年3月，苹果公司的Justin Bogner指出其团队在指令选择测试中应用模糊测试与输入生成技术的实验过程及核心成果。深入探讨了在寻找高价值测试输入过程中的技术权衡，以及验证生成代码有效性的核心方案\cite{Bogner2017ISelFuzzing}。
+在框架初步成型后，研究者着手开展功能完善与质量保障工作。2017年，苹果公司的Justin Bogner介绍了其团队在指令选择测试中应用模糊测试与输入生成技术的实验过程及核心成果，深入探讨了在寻找高价值测试输入过程中的技术权衡，以及验证生成代码有效性的核心方案\cite{Bogner2017ISelFuzzing}，为GlobalISel的可靠性提供了重要保障。2024年，Pierre Houtryve提出为GlobalISel组合器基础设施新增输入/输出MIR模式支持，该功能包含类PatFrag系统与类型推断机制，使开发者能够直接在TableGen中编写大量组合器规则\cite{Houtryve2024MIRPattern}，显著提升了框架的可编程性与可扩展性。
 
 \par
 
-2019年，Daniel Sanders指出目前GlobalISel的开发重心主要集中在对各类目标架构的基础支持上，优化相关的工作投入相对有限\cite{Sanders2019GlobalISelCombiner}。近期，研发方向已转向优化能力的提升，目标是使其优化水平达到能够全面替代SelectionDAGISel的程度。并详细讲解Combiner的整体设计架构、支撑其运行的核心模块、它与 GlobalISel 其他组件的协同运作方式，以及该组件的测试和调试方法。
+随着基础功能的逐步完善，研究重心逐渐向优化能力转移。2019年，Daniel Sanders指出，早期GlobalISel的开发主要集中在对各类目标架构的基础支持上，优化相关的工作投入相对有限\cite{Sanders2019GlobalISelCombiner}。近期，研发方向已转向优化能力的提升，目标是使其优化水平达到能够全面替代SelectionDAGISel的程度。他详细讲解了Combiner的整体设计架构、支撑其运行的核心模块、与GlobalISel其他组件的协同运作方式，以及该组件的测试和调试方法。2021年，Huang Zhufeng等人提出基于代价模型的指令合并优化、全局寄存器组选择优化以及指令局部性优化等方法\cite{zhufeng2021optimization}，有效解决了传统指令选择的全局优化能力缺失、编译开销大等问题，在申威平台实现了编译速度与代码质量的平衡。2024年，Tobias Stadler提出直接生成GMIR的创新方案，跳过代码生成流水线的首个转换阶段，在特定应用场景中使编译速度提升了约20\%\cite{Stadler2024DirectGMIR}。同年，Madhur Amilkanthwar针对AArch64高级SIMD平台，通过在GlobalISel各编译阶段引入补丁，消除了其向SelectionDAGISel的回退现象，并对生成的代码进行优化，显著缩小了两者在代码质量上的差距\cite{Amilkanthwar2024AArch64GlobalISel}。
 
 \par
 
-2021年，Huang Zhufeng等人提出基于代价模型的指令合并优化以及全局寄存器组选择优化以及指令局部性优化等\cite{zhufeng2021optimization}，有效解决了传统指令选择的全局优化能力缺失、编译开销大等问题，在申威平台实现了编译速度与代码质量的平衡。
+架构适配是GlobalISel推广应用的关键环节。2022年，Kai Nacke等人分享了其为PowerPC目标架构实现GlobalISel框架的初步实践经验\cite{Nacke2022PowerPCGlobalISel}，详细阐述了在适配过程中面临的架构特性适配挑战、与传统SelectionDAGISel后端的功能衔接方案，以及达成的阶段性成果（如核心指令集的无回退匹配、基础基准测试的编译通过率提升等），为其他架构的GlobalISel适配工作提供了可复用的实践参考。2024年，Jiahan Xie提出面向可扩展向量的突破性GlobalISel实现方案，以RISC-V向量扩展为目标场景，深入探讨了支持可扩展向量算术逻辑单元及加载/存储指令过程中面临的核心挑战与创新解决方案\cite{Xie2024ScalableVectorGlobalISel}，进一步拓展了框架的应用边界。2025年，Nvidia的Neil Hickey指出，GlobalISel在所有后端的推广应用仍受到指令选择场景覆盖不完全的限制，导致其在部分场景下需回退至SelectionDAGISel\cite{Hickey2025GlobalISelCI}。为解决并监控这些局限性，Neil等人开发了一套专用的持续集成系统，通过每日自动构建最新版本LLVM、编译基准测试程序并记录回退事件，为社区定位问题来源提供了有力支持。
 
 \par
 
-2022年，Kai Nacke等人分享了其为PowerPC目标架构实现GlobalISel框架的初步实践经验\cite{Nacke2022PowerPCGlobalISel}，详细阐述了在适配过程中面临的架构特性适配挑战、与传统SelectionDAGISel后端的功能衔接方案，以及达成的阶段性成果（如核心指令集的无回退匹配、基础基准测试的编译通过率提升等），为其他架构的 GlobalISel 适配工作提供可复用的实践参考。
-
-\par
-
-2024年，有关GlobalISel的研究骤然增长，其中Pierre Houtryve提出为GlobalISel组合器基础设施新增输入/输出MIR（Machine Intermediate Representation，目标架构的机器中间表示，LLVM编译器后端的核心低层中间表示，是衔接通用中间表示与最终机器码的关键桥梁）模式支持\cite{Houtryve2024MIRPattern}，该功能包含类PatFrag系统与类型推断机制，使开发者能够直接在TableGen中编写大量组合器规则；Tobias Stadler提出不再生成IR，而是直接输出GMIR（Generic Machine Intermediate Representation，通用机器中间表示，GlobalISel框架特有的中间表示形式，是衔接LLVM IR与目标架构专属MIR的核心枢纽），从而跳过代码生成流水线的首个转换阶段\cite{Stadler2024DirectGMIR}。在作者的应用场景中，该方案使编译速度提升了约 20\%；Jiahan Xie提出面向可扩展向量的突破性GlobalISel的实现方案\cite{Xie2024ScalableVectorGlobalISel}，该方案以RISC-V向量扩展为目标场景。演讲深入探讨了支持可扩展向量算术逻辑单元及加载/存储指令过程中面临的核心挑战与创新解决方案；Madhur Amilkanthwar提出针对GlobalISel对部分指令和模式的支持不完善，导致其在该平台上需回退至传统的SelectionDAGISel的问题\cite{Amilkanthwar2024AArch64GlobalISel}。做出的核心贡献如下：通过在GlobalISel各编译阶段引入补丁，消除了其回退现象；同时对GlobalISel生成的代码进行了优化，显著缩小了其与SelectionDAGISel在AArch64高级SIMD平台上的性能差距。这些进展标志着GlobalISel框架的优化迈出了重要一步，使其向成为默认指令选择器的目标更近了一步。
-
-\par
-
-2025年，Nvidia的Neil Hickey提出：GlobalISel在所有后端的推广应用受到其指令选择场景覆盖不完全的限制，这导致其在部分场景下仍需回退至SelectionDAGISel\cite{Hickey2025GlobalISelCI}。为解决并监控这些局限性，Neil等人开发了一套专用的持续集成系统。该系统每日会自动构建最新版本的LLVM，通过编译一系列广泛的基准测试程序并记录回退事件，来为LLVM社区定位问题来源。
+综上所述，GlobalISel研究经历了从框架设计、功能完善到优化增强、架构适配的演进路径，各方向相互促进、协同发展，推动该框架逐步走向成熟并有望最终取代传统的SelectionDAGISel。
 
 
 %*********************************************************************

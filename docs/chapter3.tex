@@ -51,13 +51,13 @@ GlobalISel与SelectionDAGISel在代码质量上的差异，根本原因在于二
 
 
 \subsubsection{1.公共子表达式消除}
-公共子表达式消除是一种经典的编译优化技术，其核心目标在于识别并消除程序中重复计算相同表达式的冗余操作。该优化能够通过避免冗余计算与减少不必要的寄存器占用，从而有效精简代码体积并降低执行延迟。在指令选择阶段，如果一个表达式的值已经被计算过，并且其操作数在后续代码中未被重新定义，则可以复用之前的计算结果，避免重复计算，从而减少冗余指令的产生。如代码块\ref{lst:cse_before}和代码块\ref{lst:cse_after}所示，在优化前b+c被计算了3次，优化后只需要计算1次。
+公共子表达式消除是一种经典的编译优化技术，其核心目标在于识别并消除程序中重复计算相同表达式的冗余操作。该优化能够通过避免冗余计算与减少不必要的寄存器占用，从而有效精简代码体积并降低执行延迟。在指令选择阶段，如果一个表达式的值已经被计算过，并且其操作数在后续代码中未被重新定义，则可以复用之前的计算结果，避免重复计算，从而减少冗余指令的产生。如下所示，在优化前b+c被计算了3次，优化后只需要计算1次。
 
 \begin{figure}[htbp]
 	\centering
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
-		\begin{lstlisting}[language=C++, caption={CSE优化前}, label={lst:cse_before}]
+		\begin{lstlisting}[language=C++]
 	a = b + c;
 	d = b + c;
 	e = b + c * 2;
@@ -67,7 +67,7 @@ GlobalISel与SelectionDAGISel在代码质量上的差异，根本原因在于二
 	\end{minipage}\hfill
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
-		\begin{lstlisting}[language=C++, caption={CSE优化后}, label={lst:cse_after}]
+		\begin{lstlisting}[language=C++]
 	temp = b + c;
 	a = temp;
 	d = temp;
@@ -89,10 +89,10 @@ CSE在消除冗余指令、降低寄存器使用压力的同时，也为后续�
 
 \par
 
-在具体的实现上，已知位分析需要为每个寄存器维护两个位掩码：KnownZeros和KnownOnes。其中KnownZeros用于标记寄存器中所有必然为0的位，相对应的KnownOnes则用于标记寄存器中所有必然为1的位。在指令流的传播过程中，这两个掩码会随着指令语义不断更新，使寄存器的比特级已知信息逐步得到完善。代码块\ref{lst:known_bits_case}展示了已知位分析在逻辑运算中的效果。
+在具体的实现上，已知位分析需要为每个寄存器维护两个位掩码：KnownZeros和KnownOnes。其中KnownZeros用于标记寄存器中所有必然为0的位，相对应的KnownOnes则用于标记寄存器中所有必然为1的位。在指令流的传播过程中，这两个掩码会随着指令语义不断更新，使寄存器的比特级已知信息逐步得到完善。以下代码展示了已知位分析在逻辑运算中的效果。
 
 \lstset{language=c++}
-\begin{lstlisting}[language=C++, caption={已知位分析示例}, label={lst:known_bits_case}]
+\begin{lstlisting}[language=C++]
 	int test(int a) {
 		int b = a & 0xFFFF;   // 低16位保留，高16位必为0
 		int c = b | 0x10000;  // 第17位必为1
@@ -271,13 +271,13 @@ CSE在消除冗余指令、降低寄存器使用压力的同时，也为后续�
 
 \par
 
-该优化首先利用KnownBits分析对被截断操作数进行位级信息推断，判断其高位是否完全由符号位扩展而来；若满足该条件，则说明截断操作并不会改变数值的符号与零值判定结果。此时，优化过程将原本以截断结果为操作数的比较指令，直接重写为对宽位宽操作数与零进行比较，同时移除多余的G\_TRUNC指令。一个典型的示例如代码块\ref{lst:trunc_before}和代码块\ref{lst:trunc_after}所示。
+该优化首先利用KnownBits分析对被截断操作数进行位级信息推断，判断其高位是否完全由符号位扩展而来；若满足该条件，则说明截断操作并不会改变数值的符号与零值判定结果。此时，优化过程将原本以截断结果为操作数的比较指令，直接重写为对宽位宽操作数与零进行比较，同时移除多余的G\_TRUNC指令。一个典型的示例如下所示。
 
 \begin{figure}[htbp]
 	\centering
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
-		\begin{lstlisting}[language=C++, caption={截断比较优化前}, label={lst:trunc_before}]
+		\begin{lstlisting}[language=C++]
 	%0:_(s64) = COPY $d0
 	%1:_(s32) = G_CONSTANT i32 0
 	%2:_(s32) = G_TRUNC %0:_
@@ -286,7 +286,7 @@ CSE在消除冗余指令、降低寄存器使用压力的同时，也为后续�
 	\end{minipage}\hfill
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
-		\begin{lstlisting}[language=C++, caption={截断比较优化后}, label={lst:trunc_after}]
+		\begin{lstlisting}[language=C++]
 	%0:_(s64) = COPY $d0
 	%1:_(s32) = G_CONSTANT i32 0
 	%3:_(s1)  = G_ICMP slt, %0:_, %1:_
@@ -317,9 +317,9 @@ CSE在消除冗余指令、降低寄存器使用压力的同时，也为后续�
 \operatorname{ext}\!\bigl(\operatorname{op}(x, y)\bigr)
 \]
 
-其中，op表示算术操作ADD或SUB，ext表示扩展操作ZEXT或SEXT。值得注意的是，在变换过程中必须保证扩展类型的一致性，并在符号扩展场景下正确维护符号语义。在Combiner中，该优化通过参数化的TableGen规则进行描述。其核心定义代码块\ref{lst:epo_tb}所示。
+其中，op表示算术操作ADD或SUB，ext表示扩展操作ZEXT或SEXT。值得注意的是，在变换过程中必须保证扩展类型的一致性，并在符号扩展场景下正确维护符号语义。在Combiner中，该优化通过参数化的TableGen规则进行描述。其核心定义如下所示。
 
-\begin{lstlisting}[language=C++, caption={EPO的TableGen规则}, label={lst:epo_tb}]
+\begin{lstlisting}[language=C++]
 	class epo_base<Instruction opcode, Instruction extOpcode>
 			: GICombineRule <
 		(defs root:$root),
@@ -378,20 +378,20 @@ EPO属于一种IR规范化类优化，并不以直接降低程序的运行时间
 
 
 \subsubsection{1.立即数的高16位全0}
-当立即数的高16位全为0时，立即数可视为一个零扩展的16位无符号数，只需要装载低16位即可。由于硬件指令集的限制，即使立即数的高16位全为0，也无法省略对高位赋值的操作。为此本节提出一种基于零寄存器的装载策略，通过设置一个零寄存器并将零寄存器作为源操作数，结合立即数加法指令来完成立即数的加载，从而避免了使用通用的长立即数装载伪指令，如代码块\ref{lst:imm_con1_before}和代码块\ref{lst:imm_con1_after}所示。
+当立即数的高16位全为0时，立即数可视为一个零扩展的16位无符号数，只需要装载低16位即可。由于硬件指令集的限制，即使立即数的高16位全为0，也无法省略对高位赋值的操作。为此本节提出一种基于零寄存器的装载策略，通过设置一个零寄存器并将零寄存器作为源操作数，结合立即数加法指令来完成立即数的加载，从而避免了使用通用的长立即数装载伪指令，对应汇编指令如下所示。
 
 \begin{figure}[htbp]
 	\centering
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
-		\begin{lstlisting}[language=C++, caption={CSE优化前}, label={lst:imm_con1_before}]
+		\begin{lstlisting}[language=C++]
 			MOVIGH GR2 0x0;
 			MOVIGL GR2 0x1;
 		\end{lstlisting}
 	\end{minipage}\hfill
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
-		\begin{lstlisting}[language=C++, caption={CSE优化后}, label={lst:imm_con1_after}]
+		\begin{lstlisting}[language=C++]
 			ADDI ZERO 0x1;
 			
 		\end{lstlisting}
@@ -400,20 +400,20 @@ EPO属于一种IR规范化类优化，并不以直接降低程序的运行时间
 
 
 \subsubsection{2.立即数的高17位全1}
-当立即数的高17位全为1，即为可用16位有符号立即数表示的常量时，可以利用MOVIGLX指令来实现将一个16位的有符号立即数进行符号位扩展至32bit后复制到rd中。于是当常量满足Imm∈\([-2^{15},\, 2^{15}-1]\)时，可将imm16符号扩展到32位写入Rd，如代码块\ref{lst:imm_con2_before}和代码块\ref{lst:imm_con2_after}所示。
+当立即数的高17位全为1，即为可用16位有符号立即数表示的常量时，可以利用MOVIGLX指令来实现将一个16位的有符号立即数进行符号位扩展至32bit后复制到rd中。于是当常量满足Imm∈\([-2^{15},\, 2^{15}-1]\)时，可将imm16符号扩展到32位写入Rd，对应汇编指令如下所示。
 
 \begin{figure}[htbp]
 	\centering
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
-		\begin{lstlisting}[language=C++, caption={CSE优化前}, label={lst:imm_con2_before}]
+		\begin{lstlisting}[language=C++]
 			MOVIGH GR2 0xFFFF;
 			MOVIGL GR2 0xF123;
 		\end{lstlisting}
 	\end{minipage}\hfill
 	\begin{minipage}[t]{0.48\linewidth}
 		\captionsetup{type=lstlisting}
-		\begin{lstlisting}[language=C++, caption={CSE优化后}, label={lst:imm_con2_after}]
+		\begin{lstlisting}[language=C++]
 			MOVIGLX GR2 0xF123;
 			
 		\end{lstlisting}

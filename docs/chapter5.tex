@@ -14,10 +14,10 @@
 
 
 \subsubsection{1.LLVM IR输入}
-示例程序一的LLVM IR如代码块\ref{lst:case_1_ir}所示，该示例程序包含了基本的算术与访存操作，后文将以此为基础分析指令选择过程中中间表示的演化。
+示例程序一的LLVM IR如下所示，该示例程序包含了基本的算术与访存操作，后文将以此为基础分析指令选择过程中中间表示的演化。
 
 \lstset{language=c++}
-\begin{lstlisting}[language=C++, caption={示例程序一的LLVM IR表示}, label={lst:case_1_ir}]
+\begin{lstlisting}[language=C++]
 	define dso_local i32 @testArith(i32 noundef %a, i32 noundef %b) {
 		entry:
 		%a.addr = alloca i32
@@ -114,10 +114,10 @@
 
 
 \subsubsection{1.比较+分支+跳转指令}
-比较与条件分支是程序控制流构建的基础。在LLVM IR中，比较与条件分支通过icmp与br组合表达。为验证DSP后端对该类控制流指令的处理正确性，本节构建了一个同时包含比较、条件分支及无条件跳转的示例程序二，其LLVM IR如代码块\ref{lst:case_2_ir}所示。
+比较与条件分支是程序控制流构建的基础。在LLVM IR中，比较与条件分支通过icmp与br组合表达。为验证DSP后端对该类控制流指令的处理正确性，本节构建了一个同时包含比较、条件分支及无条件跳转的示例程序二，其LLVM IR如下所示。
 
 \lstset{language=c++}
-\begin{lstlisting}[language=C++, caption={示例程序二的LLVM IR表示}, label={lst:case_2_ir}]
+\begin{lstlisting}[language=C++]
 define dso_local i32 @testBranch() {
 	entry:
 	%retval = alloca i32
@@ -182,10 +182,10 @@ define dso_local i32 @testBranch() {
 
 
 \subsubsection{2.函数调用指令}
-函数调用是一类重要的控制流操作，其正确性依赖于调用约定、参数传递机制以及返回值处理等多个环节。为验证DSP后端在GlobalISel框架下对函数调用指令的处理正确性，构造了一个简单的示例程序四，其中main函数调用前文定义的testBranch函数，其LLVM IR如代码块\ref{lst:case_4_ir}所示。
+函数调用是一类重要的控制流操作，其正确性依赖于调用约定、参数传递机制以及返回值处理等多个环节。为验证DSP后端在GlobalISel框架下对函数调用指令的处理正确性，构造了一个简单的示例程序四，其中main函数调用前文定义的testBranch函数，其LLVM IR如下所示。
 
 \lstset{language=c++}
-\begin{lstlisting}[language=C++, caption={示例程序四的LLVM IR表示}, label={lst:case_4_ir}]
+\begin{lstlisting}[language=C++]
 define dso_local i32 @main() {
 	entry:
 	%retval = alloca i32
@@ -233,10 +233,10 @@ define dso_local i32 @main() {
 
 
 \subsubsection{1.典型样例验证}
-为验证合法化前优化是否有效，本节以内存操作优化为例设计了示例程序五，程序包含一个内存拷贝函数，用于从源地址拷贝16字节的32位整型数据到目标地址，其LLVM IR如代码块\ref{lst:case_5_ir}所示。
+为验证合法化前优化是否有效，本节以内存操作优化为例设计了示例程序五，程序包含一个内存拷贝函数，用于从源地址拷贝16字节的32位整型数据到目标地址，其LLVM IR如下所示。
 
 \lstset{language=c++}
-\begin{lstlisting}[language=C++, caption={示例程序五的LLVM IR表示}, label={lst:case_5_ir}]
+\begin{lstlisting}[language=C++]
 define void @main(ptr %dst, ptr %src) {
 	call void @llvm.memcpy.p0.p0.i32(ptr %dst, ptr %src, i32 16, i1 0)
 	ret void
@@ -314,10 +314,10 @@ declare void @llvm.memcpy.p0.p0.i32(ptr, ptr, i32, i1)
 
 
 \subsubsection{1.典型样例验证}
-为验证合法化后优化是否有效，本节以常量乘法强度削弱为例设计了示例程序六，程序包含一个32位整型乘法指令，其LLVM IR如代码块 \ref{lst:case_6_ir} 所示。
+为验证合法化后优化是否有效，本节以常量乘法强度削弱为例设计了示例程序六，程序包含一个32位整型乘法指令，其LLVM IR如下所示。
 
 \lstset{language=c++}
-\begin{lstlisting}[language=C++, caption={示例程序六的LLVM IR表示}, label={lst:case_6_ir}]
+\begin{lstlisting}[language=C++]
 define dso_local i32 @main() #0 align 16 {
 entry:
 	%retval = alloca i32, align 4
@@ -508,7 +508,7 @@ LLVM编译流程可划分为以下几个阶段：
 % 5.4 测试评估平台功能展示
 %*********************************************************************
 \section{测试评估平台功能展示}
-测试评估平台围绕编译器工具链的持续迭代需求来进行设计。平台集成了性能数据采集、历史回归分析、版本对比以及汇编级诊断等功能。平台通过系统化地记录与分析不同Commit在统一测试集上的性能表现，已在实际开发过程中协助作者发现并定位多个编译器缺陷，为编译器优化与回归验证提供了重要支撑。下文结合平台主要功能模块，详细展示其核心功能。
+测试评估平台围绕编译器工具链的持续迭代需求来进行设计。平台的评估子系统集成了性能数据采集、历史回归分析、版本对比以及汇编级诊断等功能。平台通过系统化地记录与分析不同Commit在统一测试集上的性能表现，已在实际开发过程中协助作者发现并定位多个编译器缺陷，为编译器优化与回归验证提供了重要支撑。下文结合平台主要功能模块，详细展示其核心功能。
 
 
 \subsubsection{1.全局性能趋势分析模块}
@@ -532,16 +532,16 @@ LLVM编译流程可划分为以下几个阶段：
 	\label{fig:history}
 \end{figure}
 
+
+\subsubsection{3.跨版本性能差异对比分析模块}
+如图\ref{fig:compare}所示，该模块用于对任意两个Commit之间的性能指标进行对比分析。模块不仅提供测试用例级别的执行周期与代码体积对比结果，还提供样例汇编代码对比的功能，以此帮助开发者从底层代码生成角度分析性能差异的根本原因，适用于优化效果验证与回归问题定位的情景。
+
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=1\textwidth]{pics/compare.png}
 	\caption{跨版本性能差异对比分析界面展示图}
 	\label{fig:compare}
 \end{figure}
-
-
-\subsubsection{3.跨版本性能差异对比分析模块}
-如图\ref{fig:compare}所示，该模块用于对任意两个Commit之间的性能指标进行对比分析。模块不仅提供测试用例级别的执行周期与代码体积对比结果，还提供样例汇编代码对比的功能，以此帮助开发者从底层代码生成角度分析性能差异的根本原因，适用于优化效果验证与回归问题定位的情景。
 
 
 \subsubsection{4.本地性能测试报告上传模块}

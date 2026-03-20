@@ -147,7 +147,7 @@ CSmith在验证编译器的基础语义一致性、防范功能性错误等方�
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1\textwidth]{pics/system_flowchart.png}
+	\includegraphics[width=0.95\textwidth]{pics/system_flowchart.png}
 	\caption{系统整体设计图}
 	\label{fig:system_flowchart}
 \end{figure}
@@ -175,7 +175,7 @@ CSmith在验证编译器的基础语义一致性、防范功能性错误等方�
 
 \begin{figure}[htbp]
 	\centering
-	\resizebox{0.9\linewidth}{!}{
+	\resizebox{0.92\linewidth}{!}{
 		\begin{tikzpicture}[
 			node distance=1.6cm,
 			box/.style={draw, rectangle, rounded corners, align=center, minimum width=3cm, minimum height=0.9cm},
@@ -245,7 +245,7 @@ CSmith在验证编译器的基础语义一致性、防范功能性错误等方�
 
 \begin{figure}[htbp]
 	\centering
-	\resizebox{0.7\linewidth}{!}{
+	\resizebox{0.75\linewidth}{!}{
 		\begin{tikzpicture}[
 			box/.style={
 				draw, rectangle, rounded corners, align=center,
@@ -318,10 +318,10 @@ YARPGen是通用的编译器测试用例生成工具，其默认设计面向通�
 
 
 \subsubsection{1.引入DSP专用调试头文件}
-DSP编译器的测试与验证依赖架构专用的调试与输出接口，而非标准的stdio输出机制。为保证生成的随机测试程序能够在DSP环境中正确输出运行结果，需在测试用例中引入特定头文件以支持调试输出和结果对比。在YARPGen的emitCheckFunc阶段，通过条件编译区分通用平台和DSP平台，为DSP环境添加专用调试头文件，并声明调试输出相关的函数接口，如代码块\ref{lst:debug_logic}所示。
+DSP编译器的测试与验证依赖架构专用的调试与输出接口，而非标准的stdio输出机制。为保证生成的随机测试程序能够在DSP环境中正确输出运行结果，需在测试用例中引入特定头文件以支持调试输出和结果对比。在YARPGen的emitCheckFunc阶段，通过条件编译区分通用平台和DSP平台，为DSP环境添加专用调试头文件，并声明调试输出相关的函数接口，对应函数如下所示。
 
 \lstset{language=c++}
-\begin{lstlisting}[language=C++, caption={调试输出逻辑}, label={lst:debug_logic}]
+\begin{lstlisting}[language=C++]
 void emitCheckFunc(std::ostream &stream) {
 	std::ostream &out_file = stream;
 	out_file << "#ifdef DSP_VALIDATION\n";
@@ -364,7 +364,7 @@ YARPGen的原生版本仅区分生成语言，而不会区分目标后端架构�
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.8\textwidth]{pics/irnode_struct.png}
+	\includegraphics[width=0.9\textwidth]{pics/irnode_struct.png}
 	\caption{拓展后的IRNode结构图}
 	\label{fig:irnode_struct}
 \end{figure}
@@ -490,7 +490,7 @@ YARPGen的原生版本仅区分生成语言，而不会区分目标后端架构�
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.95\textwidth]{pics/backend_impl.jpg}
+	\includegraphics[width=0.95\textwidth]{pics/backend_impl.png}
 	\caption{后端业务逻辑层实现架构图}
 	\label{fig:backend_impl}
 \end{figure}
