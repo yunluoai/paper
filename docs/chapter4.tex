@@ -1,545 +1,519 @@
-\chapter{测试评估平台设计与实现}
-随着DSP编译器后端功能的不断扩展，尤其是全局指令选择框架及其相关优化方法的引入，编译器在指令匹配、寄存器组的选择、合法化等阶段的行为对输入越加敏感，以及组合关系也越加复杂。尽管全局指令选择在实现上比基于DAG的指令选择方法更加模块化，但其指令选择结果由多个Pass的协同决策共同决定，这导致整个过程对输入的程序结构更加敏感。
-
-\par
-
-DSP工具链已经建立了较为完整的CI（Continuous Integration，持续集成）测试流程，能够较好地保证主分支代码的功能正确性。但是该CI流程主要面向传统编译流程构建，其设计目的是保证功能的可用性，没有针对全局指令选择及其对应优化在整个复杂流程中的正确性和性能稳定性做到有针对性的保证。随着GlobalISel在DSP工具链中的落地，现有CI测试在测试结果可分析性、性能稳定性判断、复杂输入场景覆盖上暴露出问题，需要对相关问题进行总结分析。
-
-\par
-
-针对上述问题，本文设计并实现了一套面向DSP架构的随机测试评估平台。其核心创新体现在以下两方面：
-\begin{enumerate}
-	\item
-	突破通用随机测试工具对专用架构的适配局限，通过定制扩展 YARPGen 实现 DSP 内建函数的自动化生成，强化对DSP专用指令与硬件特性的测试覆盖。
-	
-	\item
-	构建了性能数据生成-采集-存储-分析-展示的全链路管理体系，实现对编译器性能指标的系统化采集与可视化分析。
-	
-\end{enumerate}
-
-最终形成覆盖生成-编译-执行-评估的全流程自动化闭环，为GlobalISel场景下DSP编译器的优化验证与迭代维护提供核心支撑。
-
-\par
-
-本章将围绕现有测试流程缺陷分析、随机测试工具定制适配、平台架构设计与核心模块实现三方面展开论述，构建适配GlobalISel场景的DSP编译器专项测试评估体系，为后端优化策略的有效性验证与工具链迭代维护提供可靠支撑。
+\chapter{实验结果与性能分析}
+本章通过一系列系统性实验对上文研究内容进行全面验证与分析，依次验证GlobalISel在DSP后端生成代码的正确性、本文提出的GlobalISel分阶段优化策略的有效性，并开展其与传统指令选择方案的综合性能对比。
 
 
 %*********************************************************************
-% 4.1 DSP编译器测试现状与改进
+% 4.1 GlobalISel代码生成正确性验证
 %*********************************************************************
-\section{DSP编译器测试现状与改进}
+\section{GlobalISel代码生成正确性验证}
 
 
-% 4.1.1 测试流程现状
-\subsection{测试流程现状}
-在当前开发流程中，开发者提交代码后，CI系统会自动触发预设的测试流程，对最新版本的编译器进行编译与功能验证。所有测试项通过且经项目负责人审核批准后，相应代码方可合并至主分支。该测试流程在当前开发阶段具有关键作用：一方面，它能在代码提交早期发现编译错误、链接问题及显著的功能缺陷，从而保障主分支代码的基本正确性；另一方面，标准化的CI流水线实现了测试过程的自动化与统一化，减少了人工介入，有效降低了开发与维护成本。
+% 4.1.1 基本指令正确性验证
+\subsection{基本指令正确性验证}
+本节旨在验证DSP后端基本指令的正确性，重点关注算术运算指令和内存访问指令的匹配和选择结果。为此本节设计了一个示例程序一，这个示例程序包含函数参数传递、内存读写操作和整数加法与乘法运算等操作，能够覆盖DSP后端常见的指令选择路径。由于LLVM IR具有良好的目标无关性，且从C语言到LLVM IR的转换过程并非本文关注重点，因此本节及后续章节在分析过程中直接展示从LLVM IR到目标机器码的转换流程。
 
-\par
 
-总体而言，现有的测试体系已具备验证功能正确性的基本能力，能够有效发现明显错误和功能缺陷，阻止重大问题进入主分支。然而，该体系主要以测试是否通过作为判断标准，缺乏对编译器优化效果、性能变化以及复杂场景下系统鲁棒性的评估能力，难以满足DSP工具链对高性能和高可靠性长期发展的需求。具体体现在测试用例覆盖率不足以及测试结果的可读性和分析能力较弱这两个问题上。
-
-
-\subsubsection{1.测试集来源单一，场景覆盖局限于常见路径，缺乏随机化测试机制}
-测试用例的覆盖完整性直接决定了DSP工具链发现潜在缺陷的能力。然而，现有DSP工具链在测试集构成与场景覆盖方面仍存在明显不足，难以对核心编译流程的鲁棒性进行充分验证。从测试来源来看，当前测试集主要包括以下三类：
-
-\begin{itemize}
-	\item
-	基于库函数的手写测试用例：围绕基础功能验证设计，重点覆盖C标准库、数学库以及运行时支持库等核心库函数的调用场景。
-	
-	\item
-	移植的开源Benchmark程序：以通用计算或嵌入式系统性能评估为目标，用于衡量工具链在典型应用负载下的性能表现。
-	
-	\item 
-	已知缺陷的最小复现样例：开发过程中针对已暴露的问题提取出的最小测试用例，用于回归测试，防止同类缺陷再次引入。
-	
-\end{itemize}
-
-上述测试用例在验证工具链基础功能正确性以及复现已知缺陷方面具有一定价值，但其整体覆盖范围仍然较为有限。主要原因在于测试用例的设计高度依赖人工经验，多集中于常规的库函数调用路径与标准输入输出场景，对于极端数据类型、异常输入组合、复杂控制流结构以及并发与实时性等边界条件缺乏系统性的覆盖。
-
-\par
-
-这种覆盖不足会直接引发两类工程风险。第一，工具链在典型应用环境中表现正常，但在特定的应用场景或极端条件下可能出现逻辑错误或功能异常。第二，编译器内部条件引发的缺陷难以提前检测，这类缺陷通常仅出现在特定的指令组合或数据模式下，例如指令选择阶段的模式识别错误、寄存器分配中的资源冲突，或是优化转换过程中产生的语义偏差。如果这些问题在测试阶段未能被及时发现，就可能在实际运行环境中引发崩溃或性能异常，造成严重后果。
-
-\par
-
-对于采用GlobalISel的DSP编译流程而言，上述问题进一步被放大。由于指令选择结果往往由多个Pass的协同决定，例如寄存器组选择与指令合法化之间的相互影响、不同合法化路径对后续指令匹配结果的约束关系等，这类行为通常只会在特定输入结构和数据特征组合下才会显现。依赖人工经验构造的测试样例难以覆盖这些复杂交互场景，导致部分潜在缺陷在早期测试阶段无法暴露出来，直至在实际的DSP应用中才被触发，从而引发较高的工程风险和后期维护成本。
-
-
-\subsubsection{2.测试产物可读性与分析能力不足}
-现有测试体系在测试结果的表达和分析能力方面同样存在明显不足。目前的CI流程只是把测试用例是否通过作为判定标准，产出的测试结果缺乏对编译器后端行为的量化描述，未系统记录程序执行周期、代码体积、指令打包效率等关键性能指标，也未对生成的汇编代码进行结构化管理。这使得测试结果只能用于验证功能正确性，而无法反映全局指令选择及相关优化策略对编译器性能造成的实际影响。
-
-\par
-
-除此之外，测试结果既没有做历史化存储，也没有做跨版本管理，这导致开发人员难以对不同提交之间的性能变化进行对比分析，也无法从整体上观察工具链性能随时间演进的趋势。随着CI测试记录不断积累，大量中间提交和实验性版本产生的结果进一步加剧了测试数据杂乱的问题，显著提高了有效信息筛选和问题定位的难度和成本。
-
-\par
-
-综上所述，现有测试体系在输入覆盖能力和结果分析深度方面存在明显局限，难以支撑全局指令选择框架下编译器后端行为的系统性验证，已无法满足DSP工具链在高性能和高可靠性方向持续演进的需求。
-
-
-% 4.1.2 测试体系优化需求与技术路径
-\subsection{测试体系优化需求与技术路径}
-基于4.1.1节的分析可知，随着全局指令选择框架及相关优化策略在DSP工具链中的实现，单纯依赖人工构造测试样例，以样例通过与否这一单一判定标准，难以支撑对编译器后端行为的系统性验证。为了确保全局指令选择在复杂场景下的功能与性能的稳定，现有测试体系需从测试输入覆盖与测试结果分析深度两方面进行针对性优化。
-
-\par
-
-现有测试体系需提升测试用例的覆盖广度与复杂场景的模拟能力，以充分验证全局指令选择框架中基于条件触发的各类行为。由于指令选择、寄存器组绑定和合法化等阶段的决策往往依赖于输入程序的控制流结构、数据分布以及运算模式，仅仅依靠人工设计的测试样例难以系统覆盖所有潜在组合路径。因此，有必要引入随机测试生成机制，通过自动化方式生成大量具有结构多样性和数据随机性的测试程序，从而覆盖人工测试难以触及的边缘场景。这种随机测试方式能够有效暴露隐藏在特定输入条件下的潜在缺陷，提升编译器后端对复杂输入场景的整体鲁棒性。
-
-\par
-
-全局指令选择及其相关优化策略的引入，往往不会直接导致功能错误，而是可能以性能退化、代码体积膨胀或指令级行为异常等形式体现出来。为准确评估其对DSP架构性能的影响，有必要构建一套能够自动采集、存储和分析性能指标的评估平台，对程序执行周期、代码体积及指令级行为进行量化记录，并支持跨版本的对比分析和趋势观察。通过将测试结果结构化存储并以可视化方式呈现，可有效降低性能分析门槛，辅助开发者快速定位性能回退和异常变化。
-
-\par
-
-综上所述，面向全局指令选择框架的DSP工具链测试体系，应当以随机测试驱动的高覆盖输入验证为基础，以性能指标采集与可视化分析为核心支撑，构建一套覆盖广、可量化、可追溯的测试评估机制。针对这一目标，本文在后续章节中设计并实现了一套集随机测试生成与性能评估于一体的测试评估平台，该平台可有效支撑全局指令选择及其优化策略的功能验证与性能量化分析，为技术方案的落地提供系统化保障。
-
-
-% 4.1.3 随机测试生成技术与生成器选型
-\subsection{随机测试生成技术与生成器选型}
-随机测试生成技术是自动化测试的核心技术之一，其核心原理是使用随机或伪随机算法，按照预设的语法和语义规则生成大规模的测试输入，以此验证软件系统在不同输入场景下功能的正确性、运行的稳定性以及整体的鲁棒性。和传统的人工编写测试用例的方式相比，随机测试能够在更短时间内覆盖更广的输入空间，有利于发现隐藏较深、难以通过人工经验判断的边界错误和组合缺陷。
-
-\par
-
-在编译器测试中，随机测试技术通常借助专用的随机测试生成器来实现。这类工具会随机组合表达式、控制流结构、数据类型以及运算符等语言构造要素，来生成大量结构各异的测试程序，并将其作为输入交由编译器处理，从而验证编译器前端解析、优化过程以及后端代码生成等多个阶段的正确性与健壮性。
-
-\par
-
-在编译器随机测试工具的发展进程中，CSmith\cite{tamkun2021using}是较早在业界得到广泛应用的C语言随机程序生成器，其目标是发现编译器在处理常规C程序时可能存在的逻辑错误。CSmith的特点是生成的随机程序不仅严格遵循C99标准，还会主动规避UB（Undefined Behavior，未定义行为，代码执行结果在编程语言标准中未被明确规定的行为），从而保证测试结果可复现。
-
-\par
-
-CSmith在验证编译器的基础语义一致性、防范功能性错误等方面起到了关键作用，但受限于设计目标，它的测试重心集中于功能正确性的校验，对于编译器在高性能优化场景下的行为，覆盖能力存在明显局限。
-
-\par
-
-随着现代处理器架构日趋复杂，编译器的优化策略也在持续迭代升级，仅依靠功能正确性验证已难以满足编译器工具链的测试需求。在这一背景下，YARPGen（Yet Another Random Program Generator）\cite{livinskii2020random, livinskii2023fuzzing}应运而生，它的设计初衷正是针对CSmith在性能相关测试方面覆盖不足的问题，重点面向编译器中后端的性能优化阶段开展随机化测试。它可以在不依靠动态检查的情况下，使用生成规则来生成没有未定义行为的表达式，同时提升了生成代码的多样性，触发更多编译器优化的可能。在代码生成策略上，YARPGen侧重构造密集型循环、数组连续访问、数据并行计算与向量运算等典型代码模式，从而有针对性地覆盖循环向量化、指令级并行、缓存优化以及指令调度等编译器后端的关键优化阶段。
-
-\par
-
-从语言兼容和架构适配上来看，YARPGen不仅原生支持C语言，还支持C++的部分核心特性，并能够生成面向SIMD、向量指令等现代处理器架构扩展的针对性代码。这一特性使其在测试面向高性能计算的嵌入式DSP场景时具有一定的实用价值。
-
-\par
-
-基于上述随机测试生成器的特点，本文在测试体系的设计中，选择了YARPGen并结合DSP架构特性对其进行定制化扩展。通过生成含DSP内建函数集的随机测试程序，测试体系能更高效地验证编译器行为，为后续性能评估与回归分析提供可靠的测试基础。
-
-
-%*********************************************************************
-% 4.2 平台设计
-%*********************************************************************
-\section{平台设计}
-
-
-% 4.2.1 平台整体设计
-\subsection{平台整体设计}
-为解决4.1.1节提到的测试覆盖不足、结果分析能力弱等问题，本文设计并实现了一套面向DSP编译器的性能测试评估平台。平台整体分为测试子系统与评估子系统两大模块，前者在原有CI测试平台上进行功能新增与架构重构，后者则为全新搭建的独立模块。
-
-\par
-
-测试子系统的核心改进在于移植并定制随机测试生成器YARPGen，拓展其功能，添加适配DSP指令集架构的Intrinsic（内建函数）集，同时完成适配现有CI流程的环境配置。该子系统在每次测试触发时可自动生成一批随机样例，并与原有固定测试集并行执行，同时将测试过程中检出错误的样例纳入固定测试集，形成迭代优化的测试用例库。
-
-\par
-
-评估子系统对接线上CI测试平台，通过脚本实现编译流程的自动化触发。在开发人员提交PR后，脚本会自动触发测试任务，同时在部署在Runner上的仿真器和芯片上执行；测试完成后，结果会同步至Gitlab的Perf仓库；后端系统定时拉取Perf仓库并更新数据库，当前端发起请求时，系统会返回查询结果并在前端进行可视化展示，以此直观地呈现新变更引入的性能提升或退步。
-
-\par
-
-系统整体设计如图\ref{fig:system_flowchart}所示，整体架构分为测试子系统和评估子系统两部分。测试子系统完成从测试样例生成、编译到执行的全自动化流程；评估子系统则通过前端、后端与数据库的协作，实现测试结果的结构化存储、查询、对比分析与可视化展示。两个子系统功能上解耦，通过Perf仓库实现数据交互。这种设计既保证了测试流程的高效运行，又提升了测试结果的可分析性与可追溯性。
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=0.95\textwidth]{pics/system_flowchart.png}
-	\caption{系统整体设计图}
-	\label{fig:system_flowchart}
-\end{figure}
-
-
-% 4.2.2 测试子系统设计
-\subsection{测试子系统设计}
-测试子系统的核心目标是在CI环境下构建一套全自动化的测试流水线，覆盖从测试用例生成、编译执行到结果归档与分析的完整流程。该子系统不仅用于验证编译器功能正确性，还承担着对编译器性能变化进行长期、稳定跟踪的任务，为后续的性能评估与回归分析提供可靠数据基础。
-
-\par
-
-从功能上看，测试子系统主要由随机测试样例生成模块、编译与测试模块以及结果处理模块三部分构成，如图\ref{fig:test-subsystem}所示：
-
-\begin{itemize}
-	\item
-	随机测试样例生成模块：随机测试工具用于自动生成适配DSP架构的随机测试样例，重点覆盖密集循环、向量运算等性能相关场景。随机测试工具在执行测试时再生成，并将错误的样例推送至测试仓库，与其他测试样例一起被统一管理。二者共同为CI测试提供稳定的用例来源。
-	
-	\item
-	编译与测试模块：CI测试平台作为调度核心，从编译器代码仓库中拉取开发者提交的最新DSP工具链代码，并从测试仓库中获取待执行的测试脚本、测试样例以及需要的测试工具。首先进行编译，编译成功后将测试任务分发至Gitlab Runner，触发两类测试流程：一类是在DSP架构模拟器上执行的测试，用于快速验证功能正确性及基础性能表现；另一类是在实际DSP硬件芯片上执行的测试，用于发现硬件上的Bug，以及获取更加准确的性能指标。
-	
-	\item
-	结果处理模块：测试完成后，CI测试平台会将所有测试结果统一归档，并推送至Perf仓库。归档内容不仅包括测试通过或失败状态，还涵盖性能指标数据以及生成的汇编代码，为后续评估分析提供完整、可靠的数据基础。除此之外，为了解决4.1.2中提到的冗余问题，设置过滤器来保证只有主分支的代码才会传到Perf仓库中。
-	
-\end{itemize}
-
-\begin{figure}[htbp]
-	\centering
-	\resizebox{0.92\linewidth}{!}{
-		\begin{tikzpicture}[
-			node distance=1.6cm,
-			box/.style={draw, rectangle, rounded corners, align=center, minimum width=3cm, minimum height=0.9cm},
-			smallbox/.style={draw, rectangle, rounded corners, align=center, minimum width=2.8cm, minimum height=0.8cm},
-			dashedbox/.style={draw, rectangle, dashed, rounded corners, inner sep=0.5cm}
-			]
-			
-			%==================== 随机测试样例生成模块 ====================
-			\node[box] (rand) {YARPGen};
-			\node[box, below of=rand] (testrepo) {测试仓库};
-			
-			\node[dashedbox, fit=(rand)(testrepo), label=above:{随机测试样例生成模块}] (gen) {};
-			
-			\draw[->] (rand) -- node[right]{错误样例推送} (testrepo);
-			
-			%==================== 编译与测试模块 ====================
-			\node[box, right=4cm of rand] (compilerepo) {编译器仓库};
-			\node[box, below of=compilerepo] (ci) {CI测试平台};
-			\node[box, below of=ci] (runner) {GitLab Runner};
-			
-			\node[smallbox, below left=0.8cm and -0.6cm of runner] (sim) {模拟器测试};
-			\node[smallbox, below right=0.8cm and -0.6cm of runner] (chip) {片上测试};
-			
-			\node[dashedbox, fit=(compilerepo)(ci)(runner)(sim)(chip),
-			label=above:{编译与测试模块}] (build) {};
-			
-			\draw[->] (testrepo) -- (ci);
-			\draw[->] (compilerepo) -- (ci);
-			\draw[->] (ci) -- (runner);
-			\draw[->] (runner) -- (sim);
-			\draw[->] (runner) -- (chip);
-			
-			%==================== 结果处理模块 ====================
-			\node[box, right=4cm of ci] (archive) {测试结果归档};
-			\node[box, below of=archive] (filter) {分支过滤器};
-			\node[box, below of=filter] (perfrepo) {Perf仓库};
-			
-			\node[dashedbox, fit=(archive)(filter)(perfrepo),
-			label=above:{结果处理模块}] (result) {};
-			
-			\draw[->] (ci) -- (archive);
-			\draw[->] (archive) -- (filter);
-			\draw[->] (filter) -- (perfrepo);
-			
-		\end{tikzpicture}
-	}
-	\caption{测试子系统整体结构与功能模块设计图}
-	\label{fig:test-subsystem}
-\end{figure}
-
-
-% 4.2.3 评估子系统设计
-\subsection{评估子系统设计}
-评估子系统的任务是实现测试结果的高效利用与直观呈现，采用前端、后端与数据库协同工作的三层架构，如图\ref{fig:eval-subsystem}所示，实现对CI流水线输出性能数据的统一接入、持久化存储与多维度分析。其设计目标主要包括以下三点：第一，将分散的测试产出进行结构化处理，构建可高效检索的存储体系；第二，提供标准化、稳定可靠的数据查询接口，支持跨编译器版本的性能历史对比与长期趋势分析；第三，将分析结果以交互式可视化形式呈现，从而提升性能回归问题的定位精度与诊断效率。系统的具体模块与流程如下：
-
-\begin{itemize}
-	\item
-	后端模块负责从Perf仓库拉取性能报告，对原始数据进行结构化解析并将数据存储至数据库；同时，后端对外提供统一的数据接口，支持测试结果查询、跨版本对比以及性能趋势分析等功能，为前端的可视化展示提供服务支撑。
-	
-	\item
-	数据库模块作为测试结果的持久化存储中心，统一保存所有历史测试数据，支持按照芯片型号、Commit号、优化等级、测试集以及测试样例等多维条件进行快速检索。这一设计为性能回归分析、版本对比以及长期趋势观察提供了坚实的数据基础。
-	
-	\item
-	前端模块则为用户提供直观、交互友好的可视化界面。用户可以通过前端查看单个提交版本的测试结果，对比不同提交之间的性能差异，或以时间序列方式观察性能变化趋势等。同时，前端支持灵活的数据筛选操作，例如仅查看片上测试的性能指标，相关请求由后端实时处理并从数据库中返回结果进行展示。
-	
-\end{itemize}
-
-\begin{figure}[htbp]
-	\centering
-	\resizebox{0.75\linewidth}{!}{
-		\begin{tikzpicture}[
-			box/.style={
-				draw, rectangle, rounded corners, align=center,
-				minimum width=5.4cm, minimum height=1.1cm
-			},
-			dashedbox/.style={
-				draw, rectangle, dashed, rounded corners,
-				inner sep=0.6cm
-			},
-			arr/.style={->, line width=0.4pt}
-			]
-			
-			%==================== 数据入口 ====================
-			\node[box] (perfrepo) {Perf 仓库\\（性能报告与评估结果）};
-			\node[dashedbox, fit=(perfrepo), label=above:{数据入口}] {};
-			
-			%==================== 服务层（核心） ====================
-			\node[box, right=2.0cm of perfrepo] (backend) {
-				后端模块\\
-				数据拉取与结构化解析\\
-				统一数据服务接口
-			};
-			
-			\node[dashedbox, fit=(backend),
-			label=above:{服务层（Back-End）}] {};
-			
-			%==================== 展示层 ====================
-			\node[box, above=2.2cm of backend] (frontend) {
-				前端模块\\
-				可交互性能展示与对比分析
-			};
-			
-			\node[dashedbox, fit=(frontend),
-			label=above:{展示层（Front-End）}] {};
-			
-			%==================== 数据层 ====================
-			\node[box, below=2.2cm of backend] (db) {
-				数据库模块\\
-				历史数据持久化存储
-			};
-			
-			\node[dashedbox, fit=(db),
-			label=above:{数据层（Database）}] {};
-			
-			%==================== 连线（全部正交、无文字） ====================
-			\draw[arr] (perfrepo.east) -- (backend.west);
-			\draw[arr] (backend.north) -- (frontend.south);
-			\draw[arr] (backend.south) -- (db.north);
-			
-		\end{tikzpicture}
-	}
-	\caption{评估子系统整体结构与三层架构设计图}
-	\label{fig:eval-subsystem}
-\end{figure}
-
-
-%*********************************************************************
-% 4.3 平台实现
-%*********************************************************************
-\section{平台实现}
-
-
-% 4.3.1 面向DSP的YARPGen实现
-\subsection{面向DSP的YARPGen实现}
-YARPGen是通用的编译器测试用例生成工具，其默认设计面向通用CPU架构及具备标准运行时环境的C/C++程序。它假定目标平台具备标准库的支持，并可依赖stdio等通用接口完成程序结果的输出与验证。但DSP平台在硬件特性、调试机制以及运行环境方面均与通用处理器存在显著差异，这使得原生YARPGen难以直接应用于DSP编译器流水线的自动化验证。
-
-\par
-
-为了使随机测试生成机制能够适配到DSP编译器后端，本节对YARPGen进行了面向DSP架构的定制化扩展。整体修改遵循可复用和可扩展的设计原则，在保留YARPGen原有随机生成能力的基础上，新增了对DSP平台特有硬件约束与运行时环境的支持。具体改动体现在以下几个方面。
-
-
-\subsubsection{1.引入DSP专用调试头文件}
-DSP编译器的测试与验证依赖架构专用的调试与输出接口，而非标准的stdio输出机制。为保证生成的随机测试程序能够在DSP环境中正确输出运行结果，需在测试用例中引入特定头文件以支持调试输出和结果对比。在YARPGen的emitCheckFunc阶段，通过条件编译区分通用平台和DSP平台，为DSP环境添加专用调试头文件，并声明调试输出相关的函数接口，对应函数如下所示。
+\subsubsection{1.LLVM IR输入}
+示例程序一的LLVM IR如下所示，该示例程序包含了基本的算术与访存操作，后文将以此为基础分析指令选择过程中中间表示的演化。
 
 \lstset{language=c++}
 \begin{lstlisting}[language=C++]
-void emitCheckFunc(std::ostream &stream) {
-	std::ostream &out_file = stream;
-	out_file << "#ifdef DSP_VALIDATION\n";
-	out_file << "#include <swift_debug.h>\n";
-	out_file << "#else\n";
-	out_file << "#include <stdio.h>\n\n";
-	out_file << "#endif\n";
-	...... }
+	define dso_local i32 @testArith(i32 noundef %a, i32 noundef %b) {
+		entry:
+		%a.addr = alloca i32
+		%b.addr = alloca i32
+		store i32 %a, ptr %a.addr
+		store i32 %b, ptr %b.addr
+		%0 = load i32, ptr %a.addr
+		%1 = load i32, ptr %b.addr
+		%add = add i32 %0, %1
+		%2 = load i32, ptr %a.addr
+		%mul = mul i32 %add, %2
+		ret i32 %mul
+	}
 \end{lstlisting}
 
-其中，DSP\_VALIDATION用于标识当前测试是否运行于DSP验证环境。该宏由测试流水线在编译阶段统一注入，从而保证同一套测试生成逻辑可同时服务于通用平台与DSP平台，避免代码分叉维护。通过该方式，YARPGen在DSP模式下能够调用调试头文件中提供的调试输出接口，实现与DSP仿真器或硬件调试环境的对接。
 
-
-\subsubsection{2.添加DSP专用调试输出逻辑}
-在通用平台中，YARPGen通过标准输出对程序执行结果进行校验；而在DSP平台上，测试结果需要通过专用调试通道输出，以便测试框架进行采集与比对。为此，在YARPGen的emitMain阶段中，通过条件编译为DSP环境下添加调试函数调用，用于输出校验结果。
-
-
-\subsubsection{3.引入目标架构选项与条件编译参数}
-YARPGen的原生版本仅区分生成语言，而不会区分目标后端架构。为了支持DSP架构的相关逻辑，本文在YARPGen中引入了目标架构选项，并通过条件编译参数来控制测试生成与代码发射阶段的具体行为。这一改动为后续引入DSP架构的Intrinsic集提供了基础设施支持。
-
-
-\subsubsection{4.添加DSP架构的Intrinsic}
-为高效测试DSP编译器的行为，尤其是指令选择阶段对Intrinsic的处理，本文在YARPGen中引入了DSP架构的Intrinsic集，并将其纳入随机测试生成范围。由于YARPGen原生不支持Intrinsic，于是需要拓展其功能，在IRNode中引入新的Intrinsic选项，并根据操作数数量进行分类，如图\ref{fig:irnode_struct}所示。以SIN函数为例，对YARPGen的IRNode生成逻辑进行了扩展。
+\subsubsection{2.GMIR生成阶段}
+如图\ref{fig:case_1_gmir_gen_dump}所示，在GMIR生成阶段，LLVM IR被转换为与目标架构无关的GMIR。从中间结果可以观察到：
 
 \begin{itemize}
-	\item
-	createHelper：核心作用是创建SIN函数调用表达式，具体包括生成算术表达式参数、处理布尔类型转换，最终返回封装后的IntrinsicExpr指针。该函数是YARPGen中表达式生成逻辑的核心组件，主要用于随机生成包含SIN函数调用的测试用例。
+	\item 
+	alloca被映射为COPY指令，函数参数通过COPY指令从物理寄存器拷贝到虚拟寄存器。
 	
 	\item
-	propagateType：核心作用是对SIN函数的两个参数表达式进行类型推导、类型提升和类型统一，最终确定SIN函数调用表达式的返回值类型。
+	load与store分别被映射为G\_LOAD与G\_STORE。
+	
+	\item
+	add与mul分别被映射为G\_ADD与G\_MUL。
 	
 	\item 
-	evaluate：在测试生成或运行时阶段计算SIN函数调用的结果，具体包括处理参数的类型转换、未定义行为判断，以及最终返回计算后的标量值。该函数是YARPGen中表达式求值逻辑的核心组件，主要用于确定SIN函数调用的实际结果值。
-	
-	\item
-	emitCDefinitionImpl：核心作用是为C语言环境生成SIN函数的宏定义实现。因为C语言标准库中没有通用的SIN函数，该方法通过输出C语言的语句表达式宏，为SIN提供兼容C语言的实现，保证生成的测试用例在C环境下能正常编译运行。
-	通过上述的定制化扩展，YARPGen被成功适配到DSP编译器的流水线测试场景中。基于条件编译的设计使得：同一套随机测试生成逻辑可同时服务于通用平台与DSP平台；DSP专用Intrinsic能够被系统性纳入随机测试覆盖范围。
+	ret被映射为RET。
 	
 \end{itemize}
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.9\textwidth]{pics/irnode_struct.png}
-	\caption{拓展后的IRNode结构图}
-	\label{fig:irnode_struct}
+	\includegraphics[width=1\textwidth]{pics/case_1_gmir_gen_dump.png}
+	\caption{示例程序一的GMIR生成阶段Dump图}
+	\label{fig:case_1_gmir_gen_dump}
 \end{figure}
 
-对应的类层次结构如图\ref{fig:yarpgen_class}所示。
+该结果表明，LLVM IR到GMIR的转换过程保持了原有运算语义与数据依赖关系，为后续后端处理提供了正确的输入。
+
+
+\subsubsection{3.合法化阶段}
+指令合法化阶段的核心任务，在于将GMIR中目标架构不直接支持的操作，转化为目标架构可以直接处理的合法形式。在本示例程序中，32位的G\_ADD、G\_MUL、G\_LOAD以及G\_STORE等指令均为DSP架构原生支持的操作，因此并未触发类型扩展及指令拆解等复杂的合法化过程。如图\ref{fig:case_1_legalize_dump}所示，合法化前后的指令序列在结构和语义上保持一致。这一结果表明，当前DSP合法化规则能够正确处理基本的算术运算与内存访问指令。
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=1\textwidth]{pics/yarpgen_class.png}
-	\caption{扩展后的类结构}
-	\label{fig:yarpgen_class}
+	\includegraphics[width=1\textwidth]{pics/case_1_legalize_dump.png}
+	\caption{示例程序一的合法化阶段Dump图}
+	\label{fig:case_1_legalize_dump}
 \end{figure}
 
 
-% 4.3.2 测试子系统实现
-\subsection{测试子系统实现}
-测试子系统在保留原有功能的基础上，主要实现了两方面的扩展：一是引入对编译器性能指标的自动化采集能力；二是集成面向DSP架构定制的YARPGen，并将完整的测试流程纳入CI。相应地，系统实现主要包括性能指标测量支持的引入以及测试脚本逻辑的重构两个方面。
+\subsubsection{4.寄存器组选择阶段}
+在寄存器组选择阶段，编译器需要为每个虚拟寄存器分配合适的寄存器组。在当前的DSP后端实现中，所有参与整数算术运算的虚拟寄存器都被统一映射至GPRB中。如图\ref{fig:case_1_regbank_select_dump}所示，从寄存器组选择后的中间结果可以观察到，所有算术指令的操作数及结果均被分配到GPRB寄存器组，并且寄存器类型与对应操作数的位宽保持一致，符合DSP架构对整数运算的寄存器使用约束。
 
-
-\subsubsection{1.添加测量性能指标的支持}
-在对VLIW架构DSP编译器进行性能评估时，通常关注以下几项核心指标：程序运行周期数、生成代码体积、汇编代码质量以及指令打包效率。这些指标分别从执行效率、存储占用、代码可读性以及指令级并行优化能力等维度，综合反映了编译器后端在目标平台上的性能表现。为准确获取上述不同维度的性能数据，系统采用了差异化的采集策略。
-
-\begin{itemize}
-	\item
-	代码体积的测量通过DSP工具链中的llvm-size完成，工具通过对编译完成后的目标文件进行分析，来自动统计生成代码所占用的存储空间。
-	
-	\item
-	汇编代码的获取则依赖于DSP工具链中的反汇编器，对编译完成后的目标文件进行反汇编，生成对应的汇编输出，为后续的指令级分析提供基础数据。
-	
-	\item 
-	指令打包效率由DSP工具链的模拟器进行统计，模拟器能够在程序执行过程中收集指令发射和打包相关信息，从而反映编译器在指令调度与并行化方面的优化效果。
-	
-	\item
-	运行周期数的获取在实现上具有一定复杂性。在模拟器环境中，程序运行周期数可直接由模拟器在程序执行过程中提供；而在实际DSP芯片上，则需依赖底层驱动库所暴露的硬件计数器接口进行测量。为将周期数测量无缝集成至自动化测试流水线，平台对原有驱动库进行了重构与精简，将其提取为独立、可重定向的模块，仅保留初始化与时间戳读取两个核心函数。在测试程序的链接阶段，该模块被统一链接至主函数中，从而实现对程序执行前后时间戳的自动采集与周期数计算。通过这一方式，芯片上的运行周期数测量能够与编译、执行流程紧密结合，实现流水线化和自动化。
-	
-\end{itemize}
-
-
-\subsubsection{2.重构测试脚本并添加YARPGen}
-原有的测试脚本逻辑仅关注测试样例的功能正确性验证，无法满足性能评估平台对多维性能数据采集的需求，为此，需要对测试脚本的整体逻辑进行重写和扩展。在新的脚本中，测试流程在完成编译与执行后，会自动触发性能数据采集模块，分别获取运行周期数、代码大小、汇编输出以及指令打包效率等指标，并将其统一整理为结构化的性能报告。
-
-\par
-
-性能报告以标准化Json格式生成，便于后续自动解析和存储。在报告生成完成后，测试脚本会将测试结果进行打包，并自动上传至Perf仓库，作为后续评估和可视化分析的数据源。
-
-\par
-
-此外为了提升测试覆盖度，CI脚本中还集成了YARPGen的随机样例生成逻辑，在每次测试触发时可自动生成一批新的随机测试程序，并与已有测试样例共同参与测试执行。通过这一机制，测试流水线不仅能够验证固定测试集上的功能和性能表现，还能够持续引入新的输入场景，提升对潜在缺陷的发现能力。
-
-
-% 4.3.3 评估子系统实现
-\subsection{评估子系统实现}
-评估子系统用于对测试阶段产生的大量性能数据进行集中管理、分析与展示，其实现采用典型的三层架构，包括前端展示层、后端服务层以及数据库存储层。各层在功能上相互解耦，在数据流转上通过标准化接口进行协作，从而保证系统的可扩展性与可维护性。
-
-
-\subsubsection{1.数据展示层的实现}
-数据展示层（下文简称前端）面向编译器性能分析与回归验证的实际需求，用于解决性能数据可视化难、跨版本对比成本高的问题。前端部分基于Vue框架实现交互界面，并结合Apache ECharts实现性能数据的图形化展示。通过前端界面，用户可以直观地查看单个提交版本的测试结果，对比不同提交之间的性能差异，并以时间序列形式观察性能指标的变化趋势。可视化展示方式有效降低了性能分析门槛，使开发者能够快速定位性能回退或异常波动问题。在实现过程中，前端通过组件化方式对不同功能模块进行拆分，具体模块如下：
-
-\begin{itemize}
-	\item 
-	Dashboard：从宏观上展示DSP芯片与其他芯片在典型测试集上的性能对比结果，用于快速评估工具链性能水平。
-	
-	\item
-	Summary：基于完整测试集统计不同提交版本下的平均代码大小与执行周期，用于观察性能随时间的整体演进趋势。
-	
-	\item
-	History：针对单个测试样例，以时间序列方式展示其在不同提交下的性能变化，用于精确定位性能回退首次引入的位置。
-	
-	\item
-	Compare：对任意两个提交版本进行逐样例性能对比，并支持汇编代码对照分析，用于解释性能差异的底层原因。
-	
-	\item
-	Custom：支持上传本地测试结果并与主分支数据进行对比，便于在本地优化验证阶段提前发现潜在性能问题。
-	
-\end{itemize}
-
-前端通过调用后端提供的REST接口获取性能数据，并在本地对数据进行初步处理和筛选，以减少不必要的数据传输，前端部分核心API如表\ref{tab:frontend_api_simple}所示。性能数据的可视化展示采用Apache ECharts实现，针对不同分析场景选用合适的图表类型：例如使用柱状图展示与其他芯片在相同测试集下执行周期数或代码大小上的对比结果，使用折线图展示执行周期数及代码大小随提交版本变化的趋势情况。通过使用这种方式，前端能够直观反映性能变化特征，帮助开发者快速识别性能回退或异常波动。
-
-\begin{table}[htbp]
+\begin{figure}[htbp]
 	\centering
-	\caption{前端部分核心API列表}
-	\label{tab:frontend_api_simple}
-	
-	\renewcommand{\arraystretch}{1.2}
-	{\footnotesize
-		\begin{tabularx}{\linewidth}{
-				>{\raggedright\arraybackslash}m{2.5cm}
-				>{\centering\arraybackslash}X
-				>{\centering\arraybackslash}X
-			}
-			\toprule
-			\textbf{接口名称} & \textbf{请求方式} & \textbf{功能描述} \\
-			\midrule
-			getOptLevelOptions & GET & 获取编译优化级别选项 \\
-			getChipOptions & GET & 获取目标芯片选项列表 \\
-			getSuiteOptions & GET & 获取测试集选项列表 \\
-			getCaseOptions & GET & 获取测试用例名称选项列表 \\
-			getAllCommits & GET & 获取所有代码提交版本信息 \\
-			getCommitByHash & GET & 根据哈希值查询单个提交的详细信息 \\
-			getHistoricalStatisticalInfo & POST & 查询指定条件下测试集的历史统计信息 \\
-			getLatestPerfOfSuite & POST & 查询指定条件下测试集的最新性能数据 \\
-			getHistoricalPerf & POST & 查询单个测试用例的历史性能趋势数据 \\
-			getTwoCommitsComparison & POST & 对比两个提交版本的测试用例性能差异 \\
-			getAssemblyComparison & POST & 对比两个提交版本的汇编代码差异 \\
-			uploadLocalReport & POST & 上传本地性能测试报告并解析 \\
-			removeAllCustomReports & GET & 清空所有已上传的本地自定义测试报告 \\
-			\bottomrule
-		\end{tabularx}
+	\includegraphics[width=1\textwidth]{pics/case_1_regbank_select_dump.png}
+	\caption{示例程序一的寄存器组选择阶段Dump图}
+	\label{fig:case_1_regbank_select_dump}
+\end{figure}
+
+该结果表明所有参与算术运算的虚拟寄存器均被正确分配至通用寄存器组，同时未引入额外的跨寄存器组数据复制或冗余中间指令。
+
+
+\subsubsection{5.机器指令选择阶段}
+在机器指令选择阶段，GMIR被转换为DSP架构的目标机器指令。如\ref{fig:case_1_instr_select_dump}所示，从中间结果可以观察到，除了COPY指令外的所有指令都被正确地映射到DSP后端机器指令，COPY指令需要在后续阶段中单独处理。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/case_1_instr_select_dump.png}
+	\caption{示例程序一的机器指令选择阶段Dump图}
+	\label{fig:case_1_instr_select_dump}
+\end{figure}
+
+
+\subsubsection{6.最终代码生成阶段}
+在完成寄存器分配以及指令调度等后续后端处理流程后，编译器最终生成了符合DSP指令集规范的目标代码。如图\ref{fig:case_1_final_dump}所示，生成的目标代码在指令顺序、操作数选择以及控制流结构等方面均与原始程序语义保持一致。这表明在该示例程序中，基于GlobalISel框架的代码生成流程能够在DSP后端正确运行，实现了从高级LLVM IR到目标平台可执行机器指令的精准映射。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/case_1_final_dump.png}
+	\caption{示例程序一的最终阶段Dump图}
+	\label{fig:case_1_final_dump}
+\end{figure}
+
+
+% 4.1.2 控制流指令正确性验证
+\subsection{控制流指令正确性验证}
+除基本算术与内存访问指令这些基本指令外，控制流指令的正确生成和映射同样是验证编译器后端正确性的重要体现。本节针对对控制流相关指令的处理过程进行验证，重点覆盖比较与条件分支与函数调用两类典型控制流场景。
+
+
+\subsubsection{1.比较+分支+跳转指令}
+比较与条件分支是程序控制流构建的基础。在LLVM IR中，比较与条件分支通过icmp与br组合表达。为验证DSP后端对该类控制流指令的处理正确性，本节构建了一个同时包含比较、条件分支及无条件跳转的示例程序二，其LLVM IR如下所示。
+
+\lstset{language=c++}
+\begin{lstlisting}[language=C++]
+	define dso_local i32 @testBranch() {
+		entry:
+		%retval = alloca i32
+		%a = alloca i32
+		%b = alloca i32
+		store i32 10, ptr %a
+		store i32 20, ptr %b
+		%0 = load i32, ptr %a
+		%1 = load i32, ptr %b
+		%cmp = icmp slt i32 %0, %1
+		br i1 %cmp, label %if.then, label %if.else
+		
+		if.then:
+		store i32 0, ptr %retval
+		br label %return
+		
+		if.else:
+		store i32 1, ptr %retval
+		br label %return
+		
+		return:  %2 = load i32, ptr %retval
+		ret i32 %2
 	}
-\end{table}
+\end{lstlisting}
 
+针对该示例程序，在GlobalISel各关键阶段中的处理过程如下：
 
-\subsubsection{2.业务逻辑层的实现}
-业务逻辑层（下文简称后端）是评估子系统的核心控制单元，负责性能数据的自动获取、解析建模以及对外接口服务。后端部分基于Spring Boot框架实现，负责性能数据解析、业务逻辑处理以及接口服务等任务。后端在启动或触发定时任务时，会从Perf仓库中拉取测试结果，并按照预定义的数据格式对原始JSON数据进行解析。解析过程中，后端会将测试环境信息（如目标处理器、优化等级、测试平台）与单个测试样例的性能指标进行关联建模，从而形成结构化的数据对象。这种建模方式使得不同维度的性能数据能够被统一管理，为后续的多条件查询和对比分析提供基础。
+\begin{itemize}
+	\item
+	在GMIR生成阶段，LLVM IR中的比较指令被正确转换为G\_ICMP，其比较谓词与操作数保持一致；条件跳转指令被转换为G\_BRCOND，并以比较结果作为分支条件。
+	
+	\item
+	在合法化阶段，由于DSP架构支持整数比较操作，无需进一步拆分，相关指令保持原有结构。
+	
+	\item 
+	在寄存器组选择阶段，编译器为比较操作及其结果所涉及的虚拟寄存器分配了合适的寄存器组，确保比较结果能够以符合DSP架构约定的方式参与后续控制流指令。
+	
+	\item 
+	在机器指令选择阶段，G\_ICMP与后续的G\_BRCOND会被联合处理，映射为DSP架构下的比较指令与条件跳转指令，比较结果通过条件码寄存器传递，从而完成分支控制。
+	
+\end{itemize}
 
-\par
-
-随后，这些数据通过MyBatis持久层框架映射到数据库表结构中，实现性能数据的持久化存储。为保证在多用户查询或批量数据写入场景下系统的稳定性，后端引入Druid数据库连接池，对数据库连接进行统一管理与复用，有效降低了连接创建和释放的开销。
-
-\par
-
-在接口设计方面，后端向前端提供了一组面向性能分析任务的REST接口，包括按提交版本查询、跨版本对比以及历史趋势获取等功能。复杂的数据筛选与聚合逻辑均在后端完成，从而降低前端实现复杂度，提高系统整体的模块化程度。后端业务逻辑层的实际实现架构及核心组件的调用关系如图\ref{fig:backend_impl}所示。
+如图\ref{fig:case_2_final_dump}所示，在函数入口基本块中，比较指令首先生成条件码寄存器状态，随后通过条件跳转指令根据比较结果在两个后继基本块之间进行分支选择，验证了比较与条件分支指令的正确映射。
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=0.95\textwidth]{pics/backend_impl.png}
-	\caption{后端业务逻辑层实现架构图}
-	\label{fig:backend_impl}
+	\includegraphics[width=1\textwidth]{pics/case_2_final_dump.png}
+	\caption{示例程序二入口基本块的最终阶段Dump图}
+	\label{fig:case_2_final_dump}
+\end{figure}
+
+如图\ref{fig:case_2_final_dump_2}所示，条件判断成立时进入if.then基本块，不成立则进入if.else基本块，两个基本块各自执行相应的逻辑操作，且在块末尾均通过无条件跳转指令，汇合到同一个返回基本块中。从最终生成的机器码结果来看，各分支基本块间的跳转关系，以及这些分支块与返回块的连接方式，均与LLVM IR所定义的控制流结构一致，未产生任何额外的控制流变动。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/case_2_final_dump_2.png}
+	\caption{示例程序二条件分支基本块的最终阶段Dump图}
+	\label{fig:case_2_final_dump_2}
+\end{figure}
+
+从实验结果可以观察到，在LLVM IR向目标代码的转换过程中，比较条件及其对应的分支目标均保持一致，程序控制流未发生偏移或错误跳转，实验结果验证了比较、分支与跳转指令选择的正确性。
+
+
+\subsubsection{2.函数调用指令}
+函数调用是一类重要的控制流操作，其正确性依赖于调用约定、参数传递机制以及返回值处理等多个环节。为验证DSP后端在GlobalISel框架下对函数调用指令的处理正确性，构造了一个简单的示例程序四，其中main函数调用前文定义的testBranch函数，其LLVM IR如下所示。
+
+\lstset{language=c++}
+\begin{lstlisting}[language=C++]
+	define dso_local i32 @main() {
+		entry:
+		%retval = alloca i32
+		store i32 0, ptr %retval
+		%call = call i32 @testBranch()
+		ret i32 %call
+	}
+\end{lstlisting}
+
+针对该示例程序，函数调用在各阶段的处理过程如下：
+
+\begin{itemize}
+	\item
+	在GMIR生成阶段，call指令被转换为与调用约定相关的一系列包括参数准备、调用指令以及返回值接收等操作的GMIR指令。
+	
+	\item
+	在合法化阶段，合法化前后指令结构保持一致，表明DSP后端的合法化规则能够覆盖该类函数调用场景的基本操作需求。
+	
+	\item 
+	在寄存器组选择阶段，函数参数与返回值在符合DSP ABI的规则下被分配至DSP架构规定的寄存器或栈位置。
+	
+	\item 
+	在机器指令选择阶段，与调用相关的GMIR指令会被映射为DSP架构支持的跳转与返回指令。
+	
+\end{itemize}
+
+如图\ref{fig:case_4_final_dump}所示，实验结果表明DSP后端在GlobalISel框架下能够正确完成函数调用相关控制流的指令选择，从而保证了跨函数控制流的正确传递。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/case_4_final_dump.png}
+	\caption{示例程序四的最终阶段Dump图}
+	\label{fig:case_4_final_dump}
 \end{figure}
 
 
-\subsubsection{3.数据存储层的实现}
-数据存储层的作用是对业务逻辑层处理后的性能报告进行持久化存储，为了实现更高效地查询，本文采用Mysql关系型数据库来作为核心存储引擎。同时考虑到性能测试报告会随着工具链的持续迭代不断积累，在设计数据库时，对常用查询维度建立索引，以提升历史数据查询和对比分析的效率。该数据存储机制为评估子系统提供了稳定、可扩展的数据基础，有效支撑了后续章节中针对全局指令选择性能影响的实验分析。以record表为例，表\ref{tab:record_struct}对record表的核心字段、数据类型、约束规则及索引设计进行了详细说明。
+%*********************************************************************
+% 4.2 GlobalISel优化策略有效性验证
+%*********************************************************************
+\section{GlobalISel优化策略有效性验证}
+为验证本文所提出优化策略的有效性，本节通过一系列实验分别对两个阶段的优化效果进行验证。首先进行基于典型样例的针对性验证，构造一个符合优化触发条件的典型测试程序，通过观察优化前后的中间表示变化，判断优化是否正确触发并产生预期结果。然后在Embench基准测试集进行系统性量化评估。实验通过对比优化开启与优化关闭两种配置下生成的代码，从代码体积与执行周期两个维度进行量化分析，从而系统评估优化对性能产生的实际影响。
 
-\begin{table}[htbp]
-	\centering
-	\caption{record表结构与索引设计}
-	\label{tab:record_struct}
-	
-	\renewcommand{\arraystretch}{1.2}
-	{\footnotesize
-		\begin{tabularx}{\linewidth}{
-				>{\raggedright\arraybackslash}m{1cm}
-				>{\centering\arraybackslash}X
-				>{\centering\arraybackslash}X
-				>{\centering\arraybackslash}X
-			}
-			\toprule
-			\textbf{字段名} & \textbf{数据类型} & \textbf{约束} & \textbf{说明} \\
-			\midrule
-			id & varchar(64) & NOT NULL, PK & 测试记录主键 \\
-			case\_name & varchar(128) & NOT NULL & 测试样例名称 \\
-			status & varchar(16) & NOT NULL & 测试执行状态 \\
-			target\_cpu & varchar(32) & NOT NULL & 目标CPU架构 \\
-			opt\_level & int & NOT NULL & 编译优化级别 \\
-			platform & varchar(16) & NOT NULL & 测试平台 \\
-			testsuite & varchar(64) & NOT NULL & 测试集名称 \\
-			hash & varchar(64) & NOT NULL, FK & 关联commit表的哈希值 \\
-			cycle\_num & int & NOT NULL & 测试用例执行周期数 \\
-			code\_size & int & NOT NULL & 编译后代码大小 \\
-			bundle\_x & int & NOT NULL & 指令打包情况 \\
-			\midrule
-			\multicolumn{4}{l}{\textbf{索引说明：}} \\
-			\multicolumn{4}{l}{1. PRIMARY (id)：主键索引，加速单条测试记录的查询与修改；} \\
-			\multicolumn{4}{l}{2. fk\_record\_commit\_hash (hash)：外键索引，加速提交与测试记录的关联查询；} \\
-			\multicolumn{4}{l}{3. idx\_record\_for\_assembly\_fk (target\_cpu, opt\_level, testsuite, case\_name)：复合索引，优化汇编关联查询；} \\
-			\multicolumn{4}{l}{4. idx\_record\_for\_stats (target\_cpu, platform, opt\_level, testsuite, hash)：复合索引，加速性能统计类查询。} \\
-			\bottomrule
-		\end{tabularx}
+
+\subsection{合法化前优化策略验证}
+
+
+\subsubsection{1.典型样例验证}
+为验证合法化前优化是否有效，本节以内存操作优化为例设计了示例程序五，程序包含一个内存拷贝函数，用于从源地址拷贝16字节的32位整型数据到目标地址，其LLVM IR如下所示。
+
+\lstset{language=c++}
+\begin{lstlisting}[language=C++]
+	define void @main(ptr %dst, ptr %src) {
+		call void @llvm.memcpy.p0.p0.i32(ptr %dst, ptr %src, i32 16, i1 0)
+		ret void
 	}
-\end{table}
+	
+	declare void @llvm.memcpy.p0.p0.i32(ptr, ptr, i32, i1)
+\end{lstlisting}
+
+在未启用优化的编译流程中，内存拷贝以函数调用形式实现。在启用了本文实现的合法化前优化后，编译器在GMIR生成阶段将此内存拷贝调用识别并转换为等价的基础内存操作指令序列。图\ref{fig:case_5_before_dump}与图\ref{fig:case_5_after_dump}分别展示了优化前后的中间表示。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/case_5_before_dump.png}
+	\caption{示例程序五优化前Dump图}
+	\label{fig:case_5_before_dump}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/case_5_after_dump.png}
+	\caption{示例程序五优化后Dump图}
+	\label{fig:case_5_after_dump}
+\end{figure}
+
+对比两图可以看出，memcpy指令在优化后被成功替换为一组G\_LOAD与G\_STORE指令序列，完成了从内置函数到基础内存操作的转换，证明了该优化策略的有效性。
+
+
+\subsubsection{2.系统性量化评估}
+以优化等级O2为例，选取Embench测试集中的10个样例进行测试。在开优化和不开优化两种条件下，对这些样例的代码体积和执行周期进行统计并通过可视化方式呈现优化前后的量化对比结果。
+
+\par
+
+代码体积是衡量编译器后端代码生成质量的重要指标之一，尤其在DSP这类嵌入式场景中，受限的程序存储空间使得指令密度成为影响系统规模与功耗水平的关键因素。因此，分析不同指令选择方案对最终生成代码体积的影响，对于评估GlobalISel框架下的优化效果具有重要意义。
+
+\par
+
+本节及后续章节都基于llvm-size工具来完成代码体积的量化，并以目标文件中text段大小作为代码体积的度量指标。text段大小能够直接反映指令选择与代码生成阶段所产生的指令数量与编码密度，同时有效规避调试信息、符号表等非执行内容对统计结果的干扰。
+
+\par
+
+从图\ref{fig:pre_optimization_code_size}可以观察到，除了crc32样例的缩减率是负值之外，其余样例的缩减率均为正值，这表明大多数样例的代码体积都有减小，其中edn样例的效果最明显。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/pre_optimization_code_size.png}
+	\caption{合法化前优化对代码体积提升效果图}
+	\label{fig:pre_optimization_code_size}
+\end{figure}
+
+执行周期是衡量编译器后端优化效果最直接，也是最具代表性的性能指标之一。对于DSP这种以吞吐率和实时性为核心设计目标的处理器架构而言，程序执行周期的变化能够直观反映编译器后端各阶段的决策对实际运行性能的影响。因此，本节围绕执行周期这一维度，对不同指令选择方案在DSP平台上的运行表现进行对比分析。
+
+\par
+
+本节及后续章节的执行周期测量基于DSP工具链配套的仿真器环境完成。在仿真环境中，仿真器能够在程序执行过程中精确统计指令发射与执行情况，并直接给出程序完成所消耗的总周期数。
+
+\par
+
+为保证不同指令选择方案在执行周期统计上的可比性，本节在测量时统一采用相同的测试程序、输入数据以及运行环境配置。除此之外，本节关注程序主体计算阶段的执行周期，避免初始化、调试输出等非核心逻辑对统计结果产生干扰。实验最终得到的执行周期能够真实地反映编译器后端生成的代码在DSP架构上的运行效率。
+
+\par
+
+从图\ref{fig:pre_optimization_cycle}可以观察到，所有样例的执行周期缩减率都为正值，这表明所有的样例的执行效率均提高了。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/pre_optimization_cycle.png}
+	\caption{合法化前优化对执行周期提升效果图}
+	\label{fig:pre_optimization_cycle}
+\end{figure}
+
+以上实验结果表明：本文实现的面向DSP后端的合法化前优化在大多数场景下都能有效减少代码体积并提高执行效率。
+
+
+\subsection{合法化后优化策略验证}
+
+
+\subsubsection{1.典型样例验证}
+为验证合法化后优化是否有效，本节以常量乘法强度削弱为例设计了示例程序六，程序包含一个32位整型乘法指令，其LLVM IR如下所示。
+
+\lstset{language=c++}
+\begin{lstlisting}[language=C++]
+	define dso_local i32 @main() #0 align 16 {
+		entry:
+		%retval = alloca i32, align 4
+		%a = alloca i32, align 4
+		store i32 0, ptr %retval, align 4
+		store i32 17, ptr %a, align 4
+		%0 = load i32, ptr %a, align 4
+		%mul = mul nsw i32 %0, 33
+		ret i32 %mul
+	}
+\end{lstlisting}
+
+在未启用优化的编译流程中，乘法操作以一条硬件乘法指令的形式实现。在启用了本文实现的合法后优化后，编译器在机器指令选择阶段前将乘法指令替换为更优的指令组合。图\ref{fig:case_5_before_dump}与图\ref{fig:case_5_after_dump}分别展示了优化前后的中间表示。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/case_6_before_dump.png}
+	\caption{示例程序六优化前Dump图}
+	\label{fig:case_6_before_dump}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/case_6_after_dump.png}
+	\caption{示例程序六优化后Dump图}
+	\label{fig:case_6_after_dump}
+\end{figure}
+
+图\ref{fig:case_6_before_dump}与图\ref{fig:case_6_after_dump}展示了优化前后的GMIR对比，从图中可以看出优化前的G\_MUL指令在优化后被成功替换为G\_SHL与G\_ADD指令的组合。此转换证明了常量乘法强度削弱优化在合法化后阶段被正确触发并应用，达到了以低成本操作替代高成本运算的优化目标。
+
+
+\subsubsection{2.系统性量化评估}
+以优化等级O2为例并选取与4.2.1节A相同的10个样例，在开优化和不开优化两种条件下，对这些样例的代码体积和执行周期进行统计并通过可视化方式呈现优化前后的量化对比结果。
+
+\par
+
+从图\ref{fig:post_optimization_code_size}可以观察到，mont64样例的代码体积缩减效果最为显著，缩减率高达16.2749\%；qrduino、slre、picojpeg等样例也实现了2\%以上的正向缩减；仅st样例出现小幅体积增加。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/post_optimization_code_size.png}
+	\caption{合法化后优化对代码体积提升效果图}
+	\label{fig:post_optimization_code_size}
+\end{figure}
+
+从图\ref{fig:post_optimization_cycle}可以观察到，大部分样例的执行周期均获得正向缩减，其中mont64样例的缩减效果最为突出，执行周期缩减率高达18.3536\%；edn、md5sum、picojpeg等样例也实现了1\%至3\%的性能提升；仅huffbench与st样例的执行周期数出现了小幅增加。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/post_optimization_cycle.png}
+	\caption{合法化后优化对执行周期提升效果图}
+	\label{fig:post_optimization_cycle}
+\end{figure}
+
+以上实验结果表明：本文实现的面向DSP后端的合法化后优化在大多数场景下都能有效减少执行周期并提高执行效率。从优化效果上来看，合法化后优化并不像合法化前优化那样普遍提升效率，这是因为合法化后优化针对性更强，仅在特定指令组合模式下才能发挥作用。
+
+
+%*********************************************************************
+% 4.3 GlobalISel综合性能对比分析
+%*********************************************************************
+\section{GlobalISel综合性能对比分析}
+上一节已通过对比实验分别验证了合法化前、后优化策略的有效性，为全面评估GlobalISel框架相较于传统指令选择方案的综合性能优势，本节从代码大小、执行周期以及编译时间三个维度出发，对基于DAG的指令选择、未优化的全局指令选择以及优化后的全局指令选择来进行全方位的对比。
+
+
+% 4.3.1 代码体积对比
+\subsection{代码体积对比}
+
+
+\subsubsection{1.实验设置与统计方法}
+本节选取Embench作为测试集，对每个基准程序分别在四个优化等级下进行编译，并统计生成的目标代码text段大小。对于同一优化等级下的同一测试样例，取单次编译结果作为该样例的代码体积。随后，把测试集中所有基准程序的结果进行平均计算，得到各个优化等级下的平均代码段体积，用于不同指令选择方案之间的对比分析。
+
+
+\subsubsection{2.实验结果分析}
+图\ref{fig:size_contrast}给出了在Embench测试集上，未引入优化的GlobalISel与引入优化后的GlobalISel在不同优化等级下的平均代码段体积对比结果。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/size_contrast.png}
+	\caption{优化前后平均代码段体积对比图}
+	\label{fig:size_contrast}
+\end{figure}
+
+从整体上看，在4个优化等级下的优化后GlobalISel方案最终生成的平均代码体积更小，而且在O0性能等级下体现更加明显，表明即使是不进行高层LLVM IR的优化，在后端指令选择和指令组合方面提高的优化手段亦可以减小指令冗余、提高指令密度。高优化等级下，代码体积下降更加收敛，因为高层LLVM IR已经展开得很充分，有些冗余已经在前端或中端去掉，后端指令选择优化对代码体积的影响更多是精细化的指令密度改进，而非数量级的减少。
+
+
+\subsubsection{3.实验结论}
+实验结果表明，相较于未优化的GlobalISel实现，引入针对DSP架构特点的指令选择与指令组合优化后，编译器在各优化等级下均生成了更紧凑的目标代码。这表明本文提出的优化策略不仅在性能层面有效，还在代码体积这一关键指标上取得效果，为后续嵌入式场景的实际部署提供了有力支撑。
+
+
+% 4.3.2 执行周期对比
+\subsection{执行周期对比}
+
+
+\subsubsection{1.实验设置与统计方法}
+实验同样基于Embench测试集展开。为确保数据的稳定性和统计意义，每个基准程序均在相同的硬件平台和编译配置下独立运行多次，以消除单次测量中随机扰动的影响。具体流程为：每个样例执行10次，去掉最高和最低各两次结果，取剩余6次的平均值作为该样例的执行周期。最后，对所有样例的结果取总平均值，得到该优化等级下的整体执行周期。该统计方式能够有效平衡测量精度与实验成本，在保证数据稳定性的同时，避免个别异常运行结果对整体趋势判断产生干扰。
+
+\subsubsection{2.实验结果与分析}
+图\ref{fig:cycle_contrast}给出了在Embench测试集上，不同指令选择方案在各优化等级下的平均执行周期对比结果。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/cycle_contrast.png}
+	\caption{不同指令选择方案平均执行周期对比图}
+	\label{fig:cycle_contrast}
+\end{figure}
+
+从实验结果可以观察到，相较于未优化的GlobalISel实现，引入针对DSP架构的指令选择与指令组合优化后，程序在所有优化等级下的平均执行周期均呈现出下降趋势。这表明，在高层LLVM IR优化与后端优化协同作用的场景中，GlobalISel所引入的目标相关指令匹配、冗余指令消除以及寄存器组绑定优化，能够进一步挖掘DSP架构的指令级并行潜力，从而在整体执行效率上获得持续收益。
+
+
+\subsubsection{3.实验结论}
+从实验结果来看，DSP后端在引入针对其目标架构特性的GlobalISel优化后，编译器生成代码在执行周期维度上取得了稳定且可观的性能提升。并且该提升在不同优化等级下均具有一致性，说明其并非依赖特定编译配置，而是源于指令选择框架与目标相关优化策略在整体设计上的协同改进。这一结果进一步验证了前文提出的优化方法在实际运行性能上的有效性。
+
+
+% 4.3.3 编译时间对比
+\subsection{编译时间对比}
+除了代码体积和执行周期这两个性能指标外，编译时间作为一项关键的工程指标，直接反映了编译器的可用性与开发迭代效率，尤其在需要持续进行性能优化与回归测试的编译器开发实践中，后端编译阶段的耗时变化将对整体开发效率产生显著影响。为此，本节将从编译时间维度出发，系统性地对比分析不同指令选择方案在DSP后端上的性能表现。
+
+
+\subsubsection{1.度量方法与相关指标说明}
+本节基于Clang自带的编译时间追踪机制来对编译时间进行量化分析，该机制能够对编译过程中各阶段的执行时间进行精细化统计，从而为分析编译器性能瓶颈与优化效果提供可靠的数据支撑。图\ref{fig:compile_time_example}中展示了部分关键时间指标及其在不同编译阶段的分布情况。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/compile_time_example.png}
+	\caption{不同编译阶段时间指标图}
+	\label{fig:compile_time_example}
+\end{figure}
+
+其中，各时间指标的含义如下：
+
+\begin{itemize}
+	\item
+	User Time（用户态时间）：表示CPU在用户态执行编译器自身代码所消耗的时间，仅反映编译器逻辑计算的开销，不包含操作系统内核相关操作。
+	
+	\item
+	System Time（系统态时间）：表示CPU在内核态执行系统调用（如文件读写、内存管理、进程调度等）所消耗的时间，属于编译过程中的系统辅助开销。
+	
+	\item 
+	User+System Time（用户态加系统态时间）：反映CPU在该阶段用于计算的总耗时，是用户态和系统态时间的累加，但不包含I/O等待和CPU空闲时间。
+	
+	\item 
+	Wall Time（壁钟时间）：指从编译阶段开始到结束所消耗的实际物理时间。在实际场景中，这一指标最能直观反映用户实际感知到的编译等待时长，因此也是本文关注的核心量化指标。
+	
+\end{itemize}
+
+LLVM编译流程可划分为以下几个阶段：
+
+\begin{itemize}
+	\item
+	Front end（前端）：负责源代码解析、语法分析、语义分析等核心操作，核心作用是将高级语言代码转换为中间表示形式。
+	
+	\item
+	LLVM IR generation（LLVM IR生成）：负责将前端分析的结果转换为LLVM IR，为后续优化和代码生成奠定基础。
+	
+	\item 
+	Optimizer（优化器）：负责对LLVM IR进行多级优化，包括控制流优化、数据流优化及目标无关优化等。
+	
+	\item 
+	Machine code generation（机器码生成）：作为编译器后端的核心环节，该阶段负责指令选择、寄存器分配、指令调度以及最终目标机器码的生成。
+	
+\end{itemize}
+
+由于指令选择阶段在LLVM后端中与其他流程的耦合度较高，难以单独抽离出来进行精确量化，因此本节在编译时间的分析中，将关注点放在后端整体执行时间上。具体而言，统计Machine Code Generation阶段的Wall Time，以此作为后端编译开销的统一度量标准。这种统计方式在保证分析结果可比性和稳定性的同时，能够有效反映后端相关优化对实际编译时间的影响，为后续性能评估提供依据。
+
+
+\subsubsection{2.实验设置与统计方法}
+为降低单次测量中环境噪声与随机波动对实验结果的影响，实验采用多次重复实验的统计方法。具体而言，在保持实验环境与配置完全一致的条件下，对每个测试样例分别独立执行10次完整的编译流程。在结果统计阶段，剔除两个最大值和两个最小值后再对剩余数据取平均值，以此作为该样例在对应优化等级下的编译时间。最后对Embench测试集中22个基准程序的结果汇总并进一步取平均值，得到不同优化等级下的平均编译时间，以此用于不同指令选择方案之间的对比分析。
+
+
+\subsubsection{3.实验结果与分析}
+图\ref{fig:compile_time_contrast}给出了在Embench测试集上两种指令选择方案在不同优化等级下的平均编译时间对比结果。
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=1\textwidth]{pics/compile_time_contrast.png}
+	\caption{两种指令选择方案平均编译时间对比图}
+	\label{fig:compile_time_contrast}
+\end{figure}
+
+从图\ref{fig:compile_time_contrast}中可以观察到，相比于SelectionDAGISel，GlobalISel在4个优化等级下的平均编译时间均更短，尤其是在O0优化等级下，平均编译时间只有SelectionDAGISel的一半。这个现象表明在中端优化尚未充分展开的情况下，指令选择框架自身的设计差异就已经对后端编译效率产生了影响。
+
+
+\subsubsection{4.实验结论}
+从实验结果可以观察到，在编译时间上GlobalISel相比SelectionDAG具备明显优势，且该优势在各优化等级下均保持一致。这说明该优势并非源于特定的优化配置，而是来自指令选择框架本身在流程设计和中间表示处理上的效率优化，这一特性使GlobalISel更适配频繁编译、快速迭代的开发场景。
 
 
 %*********************************************************************
 % 4.4 本章小结
 %*********************************************************************
 \section{本章小结}
-本章分析了DSP编译器在引入GlobalISel及相关优化后，现有CI测试在输入覆盖与结果分析方面存在的不足。针对现存的不足，本章设计并实现了一套面向DSP工具链的测试评估平台，通过引入随机测试生成工具、完善性能数据自动采集，并结合前后端与数据库的三层架构，实现了测试结果的统一管理与可视化分析。最终，形成了一套覆盖测试生成、流水线执行、性能采集与对比分析的完整流程，为后续GlobalISel优化效果的定量评估与回归分析提供了可靠支撑。
+本章首先用一系列有代表性的示例程序来验证面向DSP后端的GlobalISel框架代码生成的正确性。示例程序覆盖了指令合法化、寄存器组选择以及机器指令选择等关键阶段，从而确保了GlobalISel在DSP平台上的功能正确性。
+
+\par
+
+随后针对本文提出的两阶段优化策略，编写典型样例来进行有效性的验证，之后基于Embench测试集开展系统性量化评估，实验结果表明两阶段优化策略在多数场景都能有效减少代码体积和执行周期。
+
+\par
+
+最后对代码体积、执行周期以及编译时间等关键性能指标进行了全面的对比分析。实验结果表明，优化后的GlobalISel在各关键环节均能保持原始程序语义与数据依赖关系，其生成的目标代码符合DSP指令集规范与控制流逻辑，并且在性能上有明显的提升。
