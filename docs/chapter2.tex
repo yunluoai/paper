@@ -529,6 +529,15 @@ InstructionMapping的作用是对一条指令的所有操作数映射进行统�
 \subsubsection{3.映射逻辑的实现}
 寄存器组选择的核心实现通过重载RegisterBankInfo类中的相关接口完成，其中最核心的是getInstrMapping与getInstrAlternativeMapping两个函数。前者负责为每条指令生成默认的寄存器组映射方案，后者则用于在默认映射不适用或存在更优分配时，提供备选的寄存器组映射方案，从而支持更灵活、更高效的寄存器资源分配策略。
 
+\par
+
+getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现采用以规则驱动为核心的寄存器组映射构建流程。该流程首先以指令操作码为入口，对可直接由TableGen规则覆盖的场景进行快速判定。对于特殊指令，优先尝试使用TableGen自动生成的映射结果；一旦匹配成功，即可直接返回对应的InstructionMapping，从而避免后续不必要的分析与代价评估。
+
+\par
+
+当TableGen映射不可用时，算法进入基于操作数语义的通用映射阶段。此阶段以操作数为粒度，遍历指令中的所有寄存器操作数，并依据其LLT进行映射决策。在完成默认映射后，算法进一步结合指令语义对映射结果进行修正。最终，算法基于上述映射规则构建并返回完整的InstructionMapping。
+
+
 \begin{algorithm}[htbp]
 	\SetAlgoLined
 	\linespread{1}\selectfont
@@ -574,12 +583,6 @@ InstructionMapping的作用是对一条指令的所有操作数映射进行统�
 	\BlankLine
 	Construct and return the final InstructionMapping from OpdsMapping\;
 \end{algorithm}
-
-getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现采用以规则驱动为核心的寄存器组映射构建流程。该流程首先以指令操作码为入口，对可直接由TableGen规则覆盖的场景进行快速判定。对于特殊指令，优先尝试使用TableGen自动生成的映射结果；一旦匹配成功，即可直接返回对应的InstructionMapping，从而避免后续不必要的分析与代价评估。
-
-\par
-
-当TableGen映射不可用时，算法进入基于操作数语义的通用映射阶段。此阶段以操作数为粒度，遍历指令中的所有寄存器操作数，并依据其LLT进行映射决策。在完成默认映射后，算法进一步结合指令语义对映射结果进行修正。最终，算法基于上述映射规则构建并返回完整的InstructionMapping。
 
 
 %*********************************************************************
@@ -764,7 +767,7 @@ getInstrMapping的实现流程如算法\ref{alg:mapping-core}所示。其实现�
 
 
 \subsubsection{5.手动匹配}
-当指令无法被自动匹配覆盖时采用手动匹配。手动匹配通常以专用选择函数的形式存在，对操作数、立即数约束及目标指令序列进行精确构造。例如，针对寄存器内符号扩展的G\_SEXT\_INREG，可通过检查扩展位宽并构造等价的目标指令序列完成选择，同时对新生成指令施加寄存器约束，保证与后续流程兼容。
+当指令无法被自动匹配覆盖时采用手动匹配。手动匹配以专用选择函数的形式存在，对操作数、立即数约束及目标指令序列进行精确构造。例如，针对寄存器内符号扩展的G\_SEXT\_INREG，可通过检查扩展位宽并构造等价的目标指令序列完成选择，同时对新生成指令施加寄存器约束，保证与后续流程兼容。
 
 \par
 
