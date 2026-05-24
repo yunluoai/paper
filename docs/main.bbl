@@ -55,7 +55,7 @@ Instruction-Level Parallelism: A Special Issue of The Journal of
   Zorzi]{giordani2020toward}
 GIORDANI M, POLESE M, MEZZAVILLA M, et~al.
 \newblock Toward 6g networks: Use cases and technologies\allowbreak[J].
-\newblock IEEE communications magazine, 2020, 58\allowbreak (3): 55-61.
+\newblock IEEE Communications Magazine, 2020, 58\allowbreak (3): 55-61.
 
 \bibitem[Satyanarayanan et~al.(2009)Satyanarayanan, Bahl, Caceres, and
   Davies]{satyanarayanan2009case}
@@ -299,6 +299,13 @@ BOGNER J.
 Proceedings of the LLVM Developers' Meeting.
 \newblock San Jose, CA, USA: LLVM Foundation, 2017.
 
+\bibitem[Houtryve(2024)]{Houtryve2024MIRPattern}
+HOUTRYVE P.
+\newblock Extending the globalisel combiner with mir pattern
+  support\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2024.
+
 \bibitem[Sanders(2019)]{Sanders2019GlobalISelCombiner}
 SANDERS D.
 \newblock The globalisel combiner\allowbreak[C]//\allowbreak
@@ -312,19 +319,6 @@ ZHUFENG H, JIANDONG S.
 Journal of Physics: Conference Series: Vol. 1856.
 \newblock IOP Publishing, 2021: 012004.
 
-\bibitem[Nacke et~al.(2022)]{Nacke2022PowerPCGlobalISel}
-NACKE K, et~al.
-\newblock Bringing globalisel to powerpc\allowbreak[C]//\allowbreak
-Proceedings of the LLVM Developers' Meeting.
-\newblock San Jose, CA, USA: LLVM Foundation, 2022.
-
-\bibitem[Houtryve(2024)]{Houtryve2024MIRPattern}
-HOUTRYVE P.
-\newblock Extending the globalisel combiner with mir pattern
-  support\allowbreak[C]//\allowbreak
-Proceedings of the LLVM Developers' Meeting.
-\newblock San Jose, CA, USA: LLVM Foundation, 2024.
-
 \bibitem[Stadler(2024)]{Stadler2024DirectGMIR}
 STADLER T.
 \newblock Directly generating gmir to speed up llvm
@@ -332,17 +326,23 @@ STADLER T.
 Proceedings of the LLVM Developers' Meeting.
 \newblock San Jose, CA, USA: LLVM Foundation, 2024.
 
-\bibitem[Xie(2024)]{Xie2024ScalableVectorGlobalISel}
-XIE J.
-\newblock Supporting scalable vectors in globalisel: A risc-v case
-  study\allowbreak[C]//\allowbreak
-Proceedings of the LLVM Developers' Meeting.
-\newblock San Jose, CA, USA: LLVM Foundation, 2024.
-
 \bibitem[Amilkanthwar(2024)]{Amilkanthwar2024AArch64GlobalISel}
 AMILKANTHWAR M.
 \newblock Eliminating globalisel fallback on aarch64
   simd\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2024.
+
+\bibitem[Nacke et~al.(2022)]{Nacke2022PowerPCGlobalISel}
+NACKE K, et~al.
+\newblock Bringing globalisel to powerpc\allowbreak[C]//\allowbreak
+Proceedings of the LLVM Developers' Meeting.
+\newblock San Jose, CA, USA: LLVM Foundation, 2022.
+
+\bibitem[Xie(2024)]{Xie2024ScalableVectorGlobalISel}
+XIE J.
+\newblock Supporting scalable vectors in globalisel: A risc-v case
+  study\allowbreak[C]//\allowbreak
 Proceedings of the LLVM Developers' Meeting.
 \newblock San Jose, CA, USA: LLVM Foundation, 2024.
 

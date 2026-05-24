@@ -182,7 +182,7 @@
 
 
 \subsubsection{2.函数调用指令}
-函数调用是一类重要的控制流操作，其正确性依赖于调用约定、参数传递机制以及返回值处理等多个环节。为验证DSP后端在GlobalISel框架下对函数调用指令的处理正确性，构造了一个简单的示例程序四，其中main函数调用前文定义的testBranch函数，其LLVM IR如下所示。
+函数调用是一类重要的控制流操作，其正确性依赖于调用约定、参数传递机制以及返回值处理等多个环节。为验证DSP后端在GlobalISel框架下对函数调用指令的处理正确性，构造了一个简单的示例程序三，其中main函数调用前文定义的testBranch函数，其LLVM IR如下所示。
 
 \lstset{language=c++}
 \begin{lstlisting}[language=C++]
@@ -217,7 +217,7 @@
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=1\textwidth]{pics/case_4_final_dump.png}
-	\caption{示例程序四的最终阶段Dump图}
+	\caption{示例程序三的最终阶段Dump图}
 	\label{fig:case_4_final_dump}
 \end{figure}
 
@@ -233,7 +233,7 @@
 
 
 \subsubsection{1.典型样例验证}
-为验证合法化前优化是否有效，本节以内存操作优化为例设计了示例程序五，程序包含一个内存拷贝函数，用于从源地址拷贝16字节的32位整型数据到目标地址，其LLVM IR如下所示。
+为验证合法化前优化是否有效，本节以内存操作优化为例设计了示例程序四，程序包含一个内存拷贝函数，用于从源地址拷贝16字节的32位整型数据到目标地址，其LLVM IR如下所示。
 
 \lstset{language=c++}
 \begin{lstlisting}[language=C++]
@@ -250,14 +250,14 @@
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=1\textwidth]{pics/case_5_before_dump.png}
-	\caption{示例程序五优化前Dump图}
+	\caption{示例程序四优化前Dump图}
 	\label{fig:case_5_before_dump}
 \end{figure}
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=1\textwidth]{pics/case_5_after_dump.png}
-	\caption{示例程序五优化后Dump图}
+	\caption{示例程序四优化后Dump图}
 	\label{fig:case_5_after_dump}
 \end{figure}
 
@@ -277,7 +277,25 @@
 
 \par
 
-从图\ref{fig:pre_optimization_code_size}可以观察到，除了crc32样例的缩减率是负值之外，其余样例的缩减率均为正值，这表明大多数样例的代码体积都有减小，其中edn样例的效果最明显。
+从图\ref{fig:pre_optimization_code_size}可以观察到，除crc32样例的代码体积缩减率为负值外，其余所有测试样例的缩减率均为正值，说明本文提出的优化方法能够使绝大多数程序的代码体积得到有效减小。其中，crc32样例优化效果相对较弱，主要原因如下：
+
+\begin{itemize}
+	\item
+	crc32的核心计算逻辑为循环移位与异或折叠的位运算算法，其程序特征天然限制了编译器的优化空间。
+	
+	\item
+	算法具有较强的串行数据依赖，每一步计算均依赖前序结果，难以挖掘指令级并行性与向量化潜力。
+	
+	\item
+	程序控制流简单、循环体短小，编译器可进行优化的空间有限。
+
+	\item 
+	核心位运算逻辑已接近最优序列，指令选择与调度优化带来的收益被显著压缩。
+	
+\end{itemize}
+
+因此，无论采用 SelectionDAGISel 还是 GlobalISel，二者生成的指令序列差异较小，优化提升不明显。
+
 
 \begin{figure}[htbp]
 	\centering
@@ -298,7 +316,7 @@
 
 \par
 
-从图\ref{fig:pre_optimization_cycle}可以观察到，所有样例的执行周期缩减率都为正值，这表明所有的样例的执行效率均提高了。
+从图\ref{fig:pre_optimization_cycle}可以观察到，所有样例的执行周期缩减率均为正值，说明执行效率均得到提升。值得注意的是，尽管crc32样例的代码体积略有增大，但其执行周期却得到了明显降低。出现这一现象的主要原因在于，GlobalISel的指令选择与指令调度优化机制与crc32自身的位运算特征高度匹配。crc32的核心由大量串行位操作构成，其性能瓶颈并非指令数量多少，而是关键路径延迟的长短。GlobalISel在指令选择阶段能够针对移位、异或、位域操作等核心计算生成延迟更低、可单周期执行的专用指令，而非简单的通用指令序列拼接。尽管为实现低延迟指令会引入少量辅助指令并导致代码体积略有上升，但关键路径长度被显著缩短，最终使整体执行周期明显下降。同时，crc32控制流结构简单、不存在复杂分支干扰，后端优化能够稳定发挥指令调度的优势。因此，crc32以极小的空间代价换取了明显的性能提升，属于典型的以空间换时间优化，体现了GlobalISel对位运算密集程序的优化效果。
 
 \begin{figure}[htbp]
 	\centering
@@ -314,7 +332,7 @@
 
 
 \subsubsection{1.典型样例验证}
-为验证合法化后优化是否有效，本节以常量乘法强度削弱为例设计了示例程序六，程序包含一个32位整型乘法指令，其LLVM IR如下所示。
+为验证合法化后优化是否有效，本节以常量乘法强度削弱为例设计了示例程序五，程序包含一个32位整型乘法指令，其LLVM IR如下所示。
 
 \lstset{language=c++}
 \begin{lstlisting}[language=C++]
@@ -335,22 +353,22 @@
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=1\textwidth]{pics/case_6_before_dump.png}
-	\caption{示例程序六优化前Dump图}
+	\caption{示例程序五优化前Dump图}
 	\label{fig:case_6_before_dump}
 \end{figure}
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=1\textwidth]{pics/case_6_after_dump.png}
-	\caption{示例程序六优化后Dump图}
+	\caption{示例程序五优化后Dump图}
 	\label{fig:case_6_after_dump}
 \end{figure}
 
-图\ref{fig:case_6_before_dump}与图\ref{fig:case_6_after_dump}展示了优化前后的GMIR对比，从图中可以看出优化前的G\_MUL指令在优化后被成功替换为G\_SHL与G\_ADD指令的组合。此转换证明了常量乘法强度削弱优化在合法化后阶段被正确触发并应用，达到了以低成本操作替代高成本运算的优化目标。
+图\ref{fig:case_6_before_dump}与图\ref{fig:case_6_after_dump}展示了优化前后的GMIR对比，从图中可以看出优化前的G\_MUL指令在优化后被成功替换为G\_SHL与G\_ADD指令的组合。此转换证明了常量乘法强度削弱优化在合法化后阶段被正确触发并应用。
 
 
 \subsubsection{2.系统性量化评估}
-以优化等级O2为例并选取与4.2.1节A相同的10个样例，在开优化和不开优化两种条件下，对这些样例的代码体积和执行周期进行统计并通过可视化方式呈现优化前后的量化对比结果。
+以优化等级O2为例并选取与4.2.1节相同的10个样例，在开优化和不开优化两种条件下，对这些样例的代码体积和执行周期进行统计并通过可视化方式呈现优化前后的量化对比结果。
 
 \par
 
@@ -363,7 +381,8 @@
 	\label{fig:post_optimization_code_size}
 \end{figure}
 
-从图\ref{fig:post_optimization_cycle}可以观察到，大部分样例的执行周期均获得正向缩减，其中mont64样例的缩减效果最为突出，执行周期缩减率高达18.3536\%；edn、md5sum、picojpeg等样例也实现了1\%至3\%的性能提升；仅huffbench与st样例的执行周期数出现了小幅增加。
+从图\ref{fig:post_optimization_cycle}可以观察到，大部分样例的执行周期均获得正向缩减，其中mont64样例的缩减效果最为突出，执行周期缩减率高达18.3536\%；edn、md5sum、picojpeg等样例也实现了1\%至3\%的性能提升；仅huffbench与st样例的执行周期数出现了小幅增加。mont64样例优化收益显著，源于其作为大数模乘与Montgomery乘法计算内核，具备典型的计算密集特征：算术运算占比高、指令级并行潜力大，循环体内存在大量独立乘加操作，且控制流规整无复杂分支，便于GlobalISel完成指令选择、寄存器分配与指令调度的协同优化。同时，较多的中间运算结果可充分发挥GlobalISel在多寄存器组管理、值传播与合法化处理上的架构优势，从而获得远高于其他用例的性能收益。
+
 
 \begin{figure}[htbp]
 	\centering
@@ -484,7 +503,7 @@ LLVM编译流程可划分为以下几个阶段：
 
 
 \subsubsection{2.实验设置与统计方法}
-为降低单次测量中环境噪声与随机波动对实验结果的影响，实验采用多次重复实验的统计方法。具体而言，在保持实验环境与配置完全一致的条件下，对每个测试样例分别独立执行10次完整的编译流程。在结果统计阶段，剔除两个最大值和两个最小值后再对剩余数据取平均值，以此作为该样例在对应优化等级下的编译时间。最后对Embench测试集中22个基准程序的结果汇总并进一步取平均值，得到不同优化等级下的平均编译时间，以此用于不同指令选择方案之间的对比分析。
+编译时间的测量易受到操作系统调度、CPU频率波动、磁盘I/O延迟、内存缓存状态等环境噪声的影响。单次测量结果往往存在偶然性，无法准确反映编译器后端的真实执行开销。为降低上述干扰因素对实验结果的影响，提升测量结果的稳定性、准确性与可重复性，实验采用多次重复测量+去极值平均的统计方法。具体而言，在保持实验环境与编译配置完全一致的条件下，对每个测试样例独立执行10次完整的编译流程。在结果统计阶段，剔除2个最大值与2个最小值，再对剩余6组有效数据取算术平均值，以此作为该样例在对应优化等级下的编译时间。最后对Embench测试集中22个基准程序的结果汇总并进一步取平均值，得到不同优化等级下的平均编译时间，以此用于不同指令选择方案之间的对比分析。
 
 
 \subsubsection{3.实验结果与分析}

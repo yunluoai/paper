@@ -89,56 +89,56 @@
 \contentsline {subsection}{\fdu@kai \numberline {4.2.1}合法化前优化策略验证}{62}{subsection.4.2.1}%
 \contentsline {subsubsection}{1.典型样例验证}{62}{subsubsection*.80}%
 \contentsline {subsubsection}{2.系统性量化评估}{64}{subsubsection*.83}%
-\contentsline {subsection}{\fdu@kai \numberline {4.2.2}合法化后优化策略验证}{65}{subsection.4.2.2}%
-\contentsline {subsubsection}{1.典型样例验证}{65}{subsubsection*.86}%
-\contentsline {subsubsection}{2.系统性量化评估}{67}{subsubsection*.89}%
-\contentsline {section}{\numberline {4.3}GlobalISel综合性能对比分析}{68}{section.4.3}%
-\contentsline {subsection}{\fdu@kai \numberline {4.3.1}代码体积对比}{68}{subsection.4.3.1}%
-\contentsline {subsubsection}{1.实验设置与统计方法}{68}{subsubsection*.92}%
-\contentsline {subsubsection}{2.实验结果分析}{69}{subsubsection*.93}%
-\contentsline {subsubsection}{3.实验结论}{69}{subsubsection*.95}%
-\contentsline {subsection}{\fdu@kai \numberline {4.3.2}执行周期对比}{70}{subsection.4.3.2}%
-\contentsline {subsubsection}{1.实验设置与统计方法}{70}{subsubsection*.96}%
-\contentsline {subsubsection}{2.实验结果与分析}{70}{subsubsection*.97}%
-\contentsline {subsubsection}{3.实验结论}{71}{subsubsection*.99}%
-\contentsline {subsection}{\fdu@kai \numberline {4.3.3}编译时间对比}{71}{subsection.4.3.3}%
-\contentsline {subsubsection}{1.度量方法与相关指标说明}{71}{subsubsection*.100}%
-\contentsline {subsubsection}{2.实验设置与统计方法}{72}{subsubsection*.102}%
-\contentsline {subsubsection}{3.实验结果与分析}{73}{subsubsection*.103}%
-\contentsline {subsubsection}{4.实验结论}{73}{subsubsection*.105}%
-\contentsline {section}{\numberline {4.4}本章小结}{73}{section.4.4}%
-\contentsline {chapter}{\normalfont \sffamily \numberline {第5章}测试评估平台设计与实现}{75}{chapter.5}%
-\contentsline {section}{\numberline {5.1}DSP编译器测试现状与改进}{75}{section.5.1}%
-\contentsline {subsection}{\fdu@kai \numberline {5.1.1}测试流程现状}{75}{subsection.5.1.1}%
-\contentsline {subsubsection}{1.测试集来源单一，场景覆盖局限于常见路径，缺乏随机化测试机制}{76}{subsubsection*.106}%
-\contentsline {subsubsection}{2.测试产物可读性与分析能力不足}{77}{subsubsection*.107}%
-\contentsline {subsection}{\fdu@kai \numberline {5.1.2}测试体系优化需求与技术路径}{77}{subsection.5.1.2}%
-\contentsline {subsection}{\fdu@kai \numberline {5.1.3}随机测试生成技术与生成器选型}{78}{subsection.5.1.3}%
-\contentsline {section}{\numberline {5.2}平台设计}{79}{section.5.2}%
-\contentsline {subsection}{\fdu@kai \numberline {5.2.1}平台整体设计}{79}{subsection.5.2.1}%
-\contentsline {subsection}{\fdu@kai \numberline {5.2.2}测试子系统设计}{80}{subsection.5.2.2}%
-\contentsline {subsection}{\fdu@kai \numberline {5.2.3}评估子系统设计}{81}{subsection.5.2.3}%
-\contentsline {section}{\numberline {5.3}平台实现}{82}{section.5.3}%
-\contentsline {subsection}{\fdu@kai \numberline {5.3.1}面向DSP的YARPGen实现}{82}{subsection.5.3.1}%
-\contentsline {subsubsection}{1.引入DSP专用调试头文件}{83}{subsubsection*.111}%
-\contentsline {subsubsection}{2.添加DSP专用调试输出逻辑}{83}{subsubsection*.112}%
-\contentsline {subsubsection}{3.引入目标架构选项与条件编译参数}{83}{subsubsection*.113}%
-\contentsline {subsubsection}{4.添加DSP架构的Intrinsic}{84}{subsubsection*.114}%
-\contentsline {subsection}{\fdu@kai \numberline {5.3.2}测试子系统实现}{84}{subsection.5.3.2}%
-\contentsline {subsubsection}{1.添加测量性能指标的支持}{86}{subsubsection*.117}%
-\contentsline {subsubsection}{2.重构测试脚本并添加YARPGen}{86}{subsubsection*.118}%
-\contentsline {subsection}{\fdu@kai \numberline {5.3.3}评估子系统实现}{87}{subsection.5.3.3}%
-\contentsline {subsubsection}{1.数据展示层的实现}{87}{subsubsection*.119}%
-\contentsline {subsubsection}{2.业务逻辑层的实现}{88}{subsubsection*.121}%
-\contentsline {subsubsection}{3.数据存储层的实现}{90}{subsubsection*.124}%
-\contentsline {section}{\numberline {5.4}测试评估平台功能展示}{90}{section.5.4}%
-\contentsline {subsubsection}{1.全局性能趋势分析模块}{90}{subsubsection*.125}%
-\contentsline {subsubsection}{2.单测试用例性能演化分析模块}{90}{subsubsection*.127}%
-\contentsline {subsubsection}{3.跨版本性能差异对比分析模块}{90}{subsubsection*.129}%
-\contentsline {subsubsection}{4.本地性能测试报告上传模块}{92}{subsubsection*.131}%
-\contentsline {section}{\numberline {5.5}本章小结}{93}{section.5.5}%
-\contentsline {chapter}{\normalfont \sffamily \numberline {第6章}总结与展望}{95}{chapter.6}%
-\contentsline {section}{\numberline {6.1}论文总结}{95}{section.6.1}%
-\contentsline {section}{\numberline {6.2}论文展望}{95}{section.6.2}%
-\contentsline {chapter}{\normalfont \sffamily 参考文献}{97}{appendix*.133}%
-\contentsline {chapter}{\normalfont \sffamily 致谢}{103}{appendix*.134}%
+\contentsline {subsection}{\fdu@kai \numberline {4.2.2}合法化后优化策略验证}{66}{subsection.4.2.2}%
+\contentsline {subsubsection}{1.典型样例验证}{66}{subsubsection*.86}%
+\contentsline {subsubsection}{2.系统性量化评估}{68}{subsubsection*.89}%
+\contentsline {section}{\numberline {4.3}GlobalISel综合性能对比分析}{69}{section.4.3}%
+\contentsline {subsection}{\fdu@kai \numberline {4.3.1}代码体积对比}{69}{subsection.4.3.1}%
+\contentsline {subsubsection}{1.实验设置与统计方法}{69}{subsubsection*.92}%
+\contentsline {subsubsection}{2.实验结果分析}{70}{subsubsection*.93}%
+\contentsline {subsubsection}{3.实验结论}{70}{subsubsection*.95}%
+\contentsline {subsection}{\fdu@kai \numberline {4.3.2}执行周期对比}{71}{subsection.4.3.2}%
+\contentsline {subsubsection}{1.实验设置与统计方法}{71}{subsubsection*.96}%
+\contentsline {subsubsection}{2.实验结果与分析}{71}{subsubsection*.97}%
+\contentsline {subsubsection}{3.实验结论}{72}{subsubsection*.99}%
+\contentsline {subsection}{\fdu@kai \numberline {4.3.3}编译时间对比}{72}{subsection.4.3.3}%
+\contentsline {subsubsection}{1.度量方法与相关指标说明}{72}{subsubsection*.100}%
+\contentsline {subsubsection}{2.实验设置与统计方法}{73}{subsubsection*.102}%
+\contentsline {subsubsection}{3.实验结果与分析}{74}{subsubsection*.103}%
+\contentsline {subsubsection}{4.实验结论}{74}{subsubsection*.105}%
+\contentsline {section}{\numberline {4.4}本章小结}{75}{section.4.4}%
+\contentsline {chapter}{\normalfont \sffamily \numberline {第5章}测试评估平台设计与实现}{77}{chapter.5}%
+\contentsline {section}{\numberline {5.1}DSP编译器测试现状与改进}{78}{section.5.1}%
+\contentsline {subsection}{\fdu@kai \numberline {5.1.1}测试流程现状}{78}{subsection.5.1.1}%
+\contentsline {subsubsection}{1.测试集来源单一，场景覆盖局限于常见路径，缺乏随机化测试机制}{78}{subsubsection*.106}%
+\contentsline {subsubsection}{2.测试产物可读性与分析能力不足}{79}{subsubsection*.107}%
+\contentsline {subsection}{\fdu@kai \numberline {5.1.2}测试体系优化需求与技术路径}{79}{subsection.5.1.2}%
+\contentsline {subsection}{\fdu@kai \numberline {5.1.3}随机测试生成技术与生成器选型}{80}{subsection.5.1.3}%
+\contentsline {section}{\numberline {5.2}平台设计}{81}{section.5.2}%
+\contentsline {subsection}{\fdu@kai \numberline {5.2.1}平台整体设计}{81}{subsection.5.2.1}%
+\contentsline {subsection}{\fdu@kai \numberline {5.2.2}测试子系统设计}{82}{subsection.5.2.2}%
+\contentsline {subsection}{\fdu@kai \numberline {5.2.3}评估子系统设计}{83}{subsection.5.2.3}%
+\contentsline {section}{\numberline {5.3}平台实现}{84}{section.5.3}%
+\contentsline {subsection}{\fdu@kai \numberline {5.3.1}面向DSP的YARPGen实现}{84}{subsection.5.3.1}%
+\contentsline {subsubsection}{1.引入DSP专用调试头文件}{85}{subsubsection*.111}%
+\contentsline {subsubsection}{2.添加DSP专用调试输出逻辑}{85}{subsubsection*.112}%
+\contentsline {subsubsection}{3.引入目标架构选项与条件编译参数}{86}{subsubsection*.113}%
+\contentsline {subsubsection}{4.添加DSP架构的Intrinsic}{86}{subsubsection*.114}%
+\contentsline {subsection}{\fdu@kai \numberline {5.3.2}测试子系统实现}{88}{subsection.5.3.2}%
+\contentsline {subsubsection}{1.添加测量性能指标的支持}{88}{subsubsection*.117}%
+\contentsline {subsubsection}{2.重构测试脚本并添加YARPGen}{88}{subsubsection*.118}%
+\contentsline {subsection}{\fdu@kai \numberline {5.3.3}评估子系统实现}{89}{subsection.5.3.3}%
+\contentsline {subsubsection}{1.数据展示层的实现}{89}{subsubsection*.119}%
+\contentsline {subsubsection}{2.业务逻辑层的实现}{90}{subsubsection*.121}%
+\contentsline {subsubsection}{3.数据存储层的实现}{91}{subsubsection*.124}%
+\contentsline {section}{\numberline {5.4}测试评估平台功能展示}{93}{section.5.4}%
+\contentsline {subsubsection}{1.全局性能趋势分析模块}{93}{subsubsection*.125}%
+\contentsline {subsubsection}{2.单测试用例性能演化分析模块}{93}{subsubsection*.127}%
+\contentsline {subsubsection}{3.跨版本性能差异对比分析模块}{94}{subsubsection*.129}%
+\contentsline {subsubsection}{4.本地性能测试报告上传模块}{95}{subsubsection*.131}%
+\contentsline {section}{\numberline {5.5}本章小结}{95}{section.5.5}%
+\contentsline {chapter}{\normalfont \sffamily \numberline {第6章}总结与展望}{97}{chapter.6}%
+\contentsline {section}{\numberline {6.1}论文总结}{97}{section.6.1}%
+\contentsline {section}{\numberline {6.2}论文展望}{97}{section.6.2}%
+\contentsline {chapter}{\normalfont \sffamily 参考文献}{99}{appendix*.133}%
+\contentsline {chapter}{\normalfont \sffamily 致谢}{105}{appendix*.134}%

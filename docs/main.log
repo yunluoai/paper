@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  23 MAR 2026 18:41
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.3)  18 MAY 2026 13:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -2047,13 +2047,15 @@ File: pics/case_6_after_dump.png Graphic file (type bmp)
 
 
 [66]
+
+[67]
 File: pics/post_optimization_code_size.png Graphic file (type bmp)
 <pics/post_optimization_code_size.png>
 File: pics/post_optimization_cycle.png Graphic file (type bmp)
 <pics/post_optimization_cycle.png>
 
 
-[67]
+[68]
 File: pics/size_contrast.png Graphic file (type bmp)
 <pics/size_contrast.png>
 
@@ -2061,175 +2063,182 @@ Underfull \vbox (badness 3009) has occurred while \output is active []
 
 
 
-[68]
+[69]
 Underfull \vbox (badness 8170) has occurred while \output is active []
 
 
 
-[69]
+[70]
 File: pics/cycle_contrast.png Graphic file (type bmp)
 <pics/cycle_contrast.png>
 
 
-[70]
+[71]
 File: pics/compile_time_example.png Graphic file (type bmp)
 <pics/compile_time_example.png>
 
 
-[71]
+[72]
+
+[73]
 File: pics/compile_time_contrast.png Graphic file (type bmp)
 <pics/compile_time_contrast.png>
 
+Underfull \vbox (badness 1616) has occurred while \output is active []
 
-[72]
 
-[73])
 
-[74]
+[74])
+
+[75]
 \openout2 = `chapter5.aux'.
 
  (./chapter5.tex
-第5章
 
-
-[75
+[76
 
 
 
 
 ]
+第5章
 
-[76]
 
 [77]
 
 [78]
 
 [79]
-File: pics/system_flowchart.png Graphic file (type bmp)
-<pics/system_flowchart.png>
-
 
 [80]
 
 [81]
+File: pics/system_flowchart.png Graphic file (type bmp)
+<pics/system_flowchart.png>
+
 
 [82]
-Underfull \vbox (badness 2717) has occurred while \output is active []
-
-
 
 [83]
+
+[84]
+Underfull \vbox (badness 1824) has occurred while \output is active []
+
+
+
+[85]
 File: pics/irnode_struct.png Graphic file (type bmp)
 <pics/irnode_struct.png>
 File: pics/yarpgen_class.png Graphic file (type bmp)
 <pics/yarpgen_class.png>
 
 
-[84]
-
-[85]
-
 [86]
 
 [87]
-Overfull \hbox (25.71881pt too wide) in paragraph at lines 472--472
+
+[88]
+
+[89]
+Overfull \hbox (25.71881pt too wide) in paragraph at lines 477--477
 []|\TU/XITS(0)/m/n/9.03374 getHistoricalStatisticalInfo|  
  []
 
 
-Overfull \hbox (4.90509pt too wide) in paragraph at lines 472--472
+Overfull \hbox (4.90509pt too wide) in paragraph at lines 477--477
 []|\TU/XITS(0)/m/n/9.03374 getLatestPerfOfSuite|  
  []
 
 
-Overfull \hbox (33.00002pt too wide) in paragraph at lines 472--472
+Overfull \hbox (33.00002pt too wide) in paragraph at lines 477--477
 []|\TU/XITS(0)/m/n/9.03374 getTwoCommitsComparison|  
  []
 
 
-Overfull \hbox (19.94626pt too wide) in paragraph at lines 472--472
+Overfull \hbox (19.94626pt too wide) in paragraph at lines 477--477
 []|\TU/XITS(0)/m/n/9.03374 getAssemblyComparison|  
  []
 
 
-Overfull \hbox (23.27971pt too wide) in paragraph at lines 472--472
+Overfull \hbox (23.27971pt too wide) in paragraph at lines 477--477
 []|\TU/XITS(0)/m/n/9.03374 removeAllCustomReports|  
  []
 
+
+
+[90]
 File: pics/backend_impl.png Graphic file (type bmp)
 <pics/backend_impl.png>
 
-Overfull \hbox (11.17825pt too wide) in paragraph at lines 529--529
+Overfull \hbox (11.17825pt too wide) in paragraph at lines 534--534
 []|\TU/XITS(0)/m/n/9.03374 case_name|  
  []
 
 
-Overfull \hbox (9.40765pt too wide) in paragraph at lines 529--529
+Overfull \hbox (9.40765pt too wide) in paragraph at lines 534--534
 []|\TU/XITS(0)/m/n/9.03374 target_cpu|  
  []
 
 
-Overfull \hbox (4.77335pt too wide) in paragraph at lines 529--529
+Overfull \hbox (4.77335pt too wide) in paragraph at lines 534--534
 []|\TU/XITS(0)/m/n/9.03374 opt_level|  
  []
 
 
-Overfull \hbox (2.55104pt too wide) in paragraph at lines 529--529
+Overfull \hbox (2.55104pt too wide) in paragraph at lines 534--534
 []|\TU/XITS(0)/m/n/9.03374 platform|  
  []
 
 
-Overfull \hbox (1.08757pt too wide) in paragraph at lines 529--529
+Overfull \hbox (1.08757pt too wide) in paragraph at lines 534--534
 []|\TU/XITS(0)/m/n/9.03374 testsuite|  
  []
 
 
-Overfull \hbox (11.05179pt too wide) in paragraph at lines 529--529
+Overfull \hbox (11.05179pt too wide) in paragraph at lines 534--534
 []|\TU/XITS(0)/m/n/9.03374 cycle_num|  
  []
 
 
-Overfull \hbox (7.16728pt too wide) in paragraph at lines 529--529
+Overfull \hbox (7.16728pt too wide) in paragraph at lines 534--534
 []|\TU/XITS(0)/m/n/9.03374 code_size|  
  []
 
 
-Overfull \hbox (5.17082pt too wide) in paragraph at lines 529--529
+Overfull \hbox (5.17082pt too wide) in paragraph at lines 534--534
 []|\TU/XITS(0)/m/n/9.03374 bundle_x|  
  []
 
 
 
-[88]
+[91]
 
-[89]
+[92]
 File: pics/summary.png Graphic file (type bmp)
 <pics/summary.png>
 File: pics/history.png Graphic file (type bmp)
 <pics/history.png>
+
+
+[93]
 File: pics/compare.png Graphic file (type bmp)
 <pics/compare.png>
 
+Underfull \vbox (badness 5726) has occurred while \output is active []
 
-[90]
 
-[91]
+
+[94]
 File: pics/custom.png Graphic file (type bmp)
 <pics/custom.png>
+)
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-
-[92])
-
-[93]
+[95]
 \openout2 = `chapter6.aux'.
 
  (./chapter6.tex
 
-[94
+[96
 
 
 
@@ -2238,26 +2247,26 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 第6章
 
 
-[95])
+[97])
 
-[96] (./main.bbl
+[98] (./main.bbl
 
-[97
+[99
 
 
 
 
 ]
 
-[98]
-
-[99]
-
-[100])
+[100]
 
 [101]
 
-[102
+[102])
+
+[103]
+
+[104
 
 ]
 \tf@thm=\write6
@@ -2265,13 +2274,13 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 
-[103]
+[105]
 
-[104
+[106
 
 ]
 
-[105] (./main.aux (./chapter1.aux) (./chapter2.aux) (./chapter3.aux)
+[107] (./main.aux (./chapter1.aux) (./chapter2.aux) (./chapter3.aux)
 (./chapter4.aux) (./chapter5.aux) (./chapter6.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
@@ -2289,4 +2298,4 @@ Here is how much of TeX's memory you used:
  1348 hyphenation exceptions out of 8191
  107i,18n,109p,2041b,2215s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.pdf (115 pages).
+Output written on main.pdf (117 pages).
