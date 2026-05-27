@@ -1,4 +1,4 @@
-\begin{thebibliography}{55}
+\begin{thebibliography}{50}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{#1}
 \expandafter\ifx\csname urlstyle\endcsname\relax\else
@@ -62,37 +62,6 @@ GIORDANI M, POLESE M, MEZZAVILLA M, et~al.
 SATYANARAYANAN M, BAHL P, CACERES R, et~al.
 \newblock The case for vm-based cloudlets in mobile computing\allowbreak[J].
 \newblock IEEE pervasive Computing, 2009, 8\allowbreak (4): 14-23.
-
-\bibitem[Muchnick(1997)]{muchnick1997advanced}
-MUCHNICK S.
-\newblock Advanced compiler design implementation\allowbreak[M].
-\newblock Morgan kaufmann, 1997.
-
-\bibitem[Backus et~al.(1957)Backus, Beeber, Best, Goldberg, Haibt, Herrick,
-  Nelson, Sayre, Sheridan, Stern, et~al.]{backus1957fortran}
-BACKUS J~W, BEEBER R~J, BEST S, et~al.
-\newblock The fortran automatic coding system\allowbreak[C]//\allowbreak
-Papers presented at the February 26-28, 1957, western joint computer
-  conference: Techniques for reliability.
-\newblock 1957: 188-198.
-
-\bibitem[Conway(1963)]{conway1963design}
-CONWAY M~E.
-\newblock Design of a separable transition-diagram compiler\allowbreak[J].
-\newblock Communications of the ACM, 1963, 6\allowbreak (7): 396-408.
-
-\bibitem[Aho et~al.(1972)Aho and Ullman]{aho1972theory}
-AHO A~V, ULLMAN J~D.
-\newblock The theory of parsing, translation, and compiling:
-  Vol.~1\allowbreak[M].
-\newblock Prentice-Hall Englewood Cliffs, NJ, 1972.
-
-\bibitem[Johnson et~al.(1978)Johnson and Ritchie]{johnson1978unix}
-JOHNSON S~C, RITCHIE D~M.
-\newblock Unix time-sharing system: Portability of c programs and the unix
-  system\allowbreak[J].
-\newblock The Bell System Technical Journal, 1978, 57\allowbreak (6):
-  2021-2048.
 
 \bibitem[Stallman et~al.(1988)Stallman, McGrath, and Smith]{stallman1988gnu}
 STALLMAN R~M, MCGRATH R, SMITH P.

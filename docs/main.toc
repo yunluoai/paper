@@ -14,7 +14,7 @@
 \contentsline {subsubsection}{1.GlobalISel框架在DSP架构上的适配与实现方法研究}{9}{subsubsection*.7}%
 \contentsline {subsubsection}{2.面向GlobalISel流程的分阶段指令选择优化技术研究}{10}{subsubsection*.8}%
 \contentsline {subsubsection}{3.面向编译器后端优化的性能评估体系研究}{10}{subsubsection*.9}%
-\contentsline {subsection}{\fdu@kai \numberline {1.3.2}创新点凝练}{10}{subsection.1.3.2}%
+\contentsline {subsection}{\fdu@kai \numberline {1.3.2}主要创新点}{10}{subsection.1.3.2}%
 \contentsline {subsubsection}{1.提出了一种基于LLVM GlobalISel的VLIW DSP后端模块化适配方法}{10}{subsubsection*.10}%
 \contentsline {subsubsection}{2.设计了一套与合法化流程深度耦合的分阶段指令选择优化体系}{11}{subsubsection*.11}%
 \contentsline {subsubsection}{3.构建了一套集成随机测试与多维性能分析的自动化评估平台}{11}{subsubsection*.12}%
@@ -71,7 +71,7 @@
 \contentsline {subsection}{\fdu@kai \numberline {3.3.2}乘法优化}{51}{subsection.3.3.2}%
 \contentsline {subsubsection}{1.理论基础}{51}{subsubsection*.60}%
 \contentsline {subsubsection}{2.匹配阶段}{51}{subsubsection*.61}%
-\contentsline {subsubsection}{3.重写阶段}{53}{subsubsection*.63}%
+\contentsline {subsubsection}{3.重写阶段}{52}{subsubsection*.63}%
 \contentsline {section}{\numberline {3.4}本章小结}{53}{section.3.4}%
 \contentsline {chapter}{\normalfont \sffamily \numberline {第4章}实验结果与性能分析}{55}{chapter.4}%
 \contentsline {section}{\numberline {4.1}GlobalISel代码生成正确性验证}{55}{section.4.1}%
